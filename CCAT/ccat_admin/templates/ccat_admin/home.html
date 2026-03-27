@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>College Admission Test | Hero Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed": "#00210e",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f0f1f2",
+              "secondary": "#725c00",
+              "inverse-surface": "#2e3132",
+              "surface-dim": "#d9dadb",
+              "primary-container": "#006837",
+              "on-secondary-fixed-variant": "#564500",
+              "on-primary-container": "#8ee4a6",
+              "on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#ecc200",
+              "surface-container-low": "#f3f4f5",
+              "on-primary": "#ffffff",
+              "on-surface-variant": "#3f4940",
+              "error": "#ba1a1a",
+              "tertiary": "#762730",
+              "on-error": "#ffffff",
+              "primary": "#004d27",
+              "on-tertiary-container": "#ffc3c5",
+              "background": "#f8f9fa",
+              "surface-tint": "#0b6d3b",
+              "primary-fixed-dim": "#83d99c",
+              "on-surface": "#191c1d",
+              "on-primary-fixed-variant": "#00522a",
+              "on-tertiary-fixed": "#40000c",
+              "secondary-container": "#fdd000",
+              "surface-bright": "#f8f9fa",
+              "on-tertiary-fixed-variant": "#7b2b34",
+              "primary-fixed": "#9ef6b6",
+              "tertiary-fixed": "#ffdada",
+              "surface-container-highest": "#e1e3e4",
+              "tertiary-fixed-dim": "#ffb3b6",
+              "on-background": "#191c1d",
+              "inverse-primary": "#83d99c",
+              "error-container": "#ffdad6",
+              "outline": "#6f7a70",
+              "surface-container": "#edeeef",
+              "surface-variant": "#e1e3e4",
+              "surface": "#f8f9fa",
+              "on-secondary-container": "#6e5900",
+              "on-error-container": "#93000a",
+              "tertiary-container": "#943e46",
+              "secondary-fixed": "#ffe07c",
+              "on-secondary-fixed": "#231b00",
+              "surface-container-high": "#e7e8e9",
+              "outline-variant": "#bec9be",
+              "on-tertiary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>body {
+    font-family: "Inter", sans-serif
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.academic-gradient {
+    background: linear-gradient(135deg, #004d27 0%, #006837 100%)
+    }
+.pattern-bg {
+    background-image: url(https://lh3.googleusercontent.com/aida/ADBb0ugYrnS2CSTWBsP6ZYX3KfftoLYiHY3XfsNP0LqPpDd1tNVvqfTSaIDDSQCSeT9saWWp7clZ6llzKKYlw5pPzmg8-nRdFFP3AMkR4Egi8WV_w6HueQTn0hKZQNNzaVXsbLIZdCyoGSOTY0vW922h4CilTjgwQlFs9exV8d-zFXqpj2NngChsUil-useZYREnWGeKg2gxtIHn7NbOFaLCRFDWM9zprqiOHsfQDbx8YsV-QPbbGFQxIHKGJA4anvbpOvy7V0dfrS2Qxw);
+    background-repeat: repeat;
+    background-size: 150px;
+    opacity: 0.03
+    }
+.hero-mesh {
+    background-color: #f1f8f4;
+    background-image: radial-gradient(at 0% 0%, hsla(145, 100%, 95%, 1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(145, 100%, 92%, 1) 0, transparent 50%)
+    }</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col relative hero-mesh">
+<!-- Repetitive Pattern Overlay -->
+<div class="absolute inset-0 pattern-bg pointer-events-none z-0"></div>
+<!-- Header -->
+<header class="relative z-50 bg-white/80 backdrop-blur-md border-b border-emerald-900/5">
+<div class="flex justify-between items-center px-6 md:px-12 py-5 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<img alt="University Logo" class="h-12 w-12 object-contain" src="https://lh3.googleusercontent.com/aida/ADBb0ugYrnS2CSTWBsP6ZYX3KfftoLYiHY3XfsNP0LqPpDd1tNVvqfTSaIDDSQCSeT9saWWp7clZ6llzKKYlw5pPzmg8-nRdFFP3AMkR4Egi8WV_w6HueQTn0hKZQNNzaVXsbLIZdCyoGSOTY0vW922h4CilTjgwQlFs9exV8d-zFXqpj2NngChsUil-useZYREnWGeKg2gxtIHn7NbOFaLCRFDWM9zprqiOHsfQDbx8YsV-QPbbGFQxIHKGJA4anvbpOvy7V0dfrS2Qxw"/>
+<div class="flex flex-col">
+<span class="text-emerald-900 font-extrabold tracking-tight text-xl font-headline leading-tight">College Admission Test</span>
+<span class="text-emerald-800/60 text-[10px] uppercase tracking-widest font-bold">Official Examination Portal</span>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6 text-sm font-semibold text-emerald-900/70">
+<a class="hover:text-primary transition-colors" href="#">Guidelines</a>
+<a class="hover:text-primary transition-colors" href="#">Integrity Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Tech Support</a>
+</nav>
+<div class="h-4 w-[1px] bg-emerald-900/10"></div>
+<span class="text-slate-400 text-[10px] font-bold uppercase tracking-tighter">v4.2.0</span>
+</div>
+</div>
+</header>
+<main class="flex-grow relative z-10 flex items-center">
+<div class="max-w-7xl mx-auto px-6 md:px-12 py-12 md:py-24 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<!-- Hero Content (Left) -->
+<div class="space-y-8">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Live Examination Session
+                </div>
+<h1 class="text-on-surface font-headline font-black text-5xl md:text-7xl leading-[1.1] tracking-tight">
+                    Secure Academic <span class="text-primary italic">Excellence</span> Start Here.
+                </h1>
+<p class="text-on-surface-variant text-lg md:text-xl leading-relaxed max-w-xl">
+                    Welcome to the official College Admission Test portal. Please authenticate using your university-issued credentials to gain access to your scheduled examination.
+                </p>
+<div class="flex flex-wrap gap-6 pt-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">verified_user</span>
+</div>
+<span class="text-sm font-medium text-on-surface-variant">Secure AES-256 Encryption</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">timer</span>
+</div>
+<span class="text-sm font-medium text-on-surface-variant">120-Minute Allotment</span>
+</div>
+</div>
+</div>
+<!-- Login Card (Right) -->
+<div class="flex justify-center lg:justify-end">
+<div class="w-full max-w-md bg-white rounded-2xl shadow-[0_32px_64px_-16px_rgba(0,77,39,0.15)] border border-emerald-900/5 overflow-hidden">
+<div class="h-2 academic-gradient w-full"></div>
+<div class="p-8 md:p-10">
+<div class="mb-10">
+<h2 class="text-on-surface font-headline font-extrabold text-3xl tracking-tight mb-2">Student Authentication</h2>
+<div class="h-1 w-12 bg-primary rounded-full"></div>
+</div>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="text-on-surface font-bold text-[11px] uppercase tracking-[0.2em] block px-1" for="student_id">Identification</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors" data-icon="badge">badge</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-4 bg-surface-container-low border-2 border-transparent rounded-xl text-on-surface placeholder-outline/60 focus:ring-0 focus:border-primary focus:bg-white transition-all duration-300" id="student_id" name="student_id" placeholder="ADM-2024-XXXX" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-on-surface font-bold text-[11px] uppercase tracking-[0.2em] block px-1" for="exam_code">Access Key</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-4 bg-surface-container-low border-2 border-transparent rounded-xl text-on-surface placeholder-outline/60 focus:ring-0 focus:border-primary focus:bg-white transition-all duration-300" id="exam_code" name="exam_code" placeholder="Enter session key" type="password"/>
+</div>
+</div>
+<div class="pt-6">
+<button class="w-full group academic-gradient text-white font-black text-lg py-5 px-8 rounded-xl flex items-center justify-center gap-3 shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-[0.98] transition-all duration-300" type="submit">
+<span>START EXAMINATION</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+<div class="mt-8 text-center">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">
+                                By proceeding, you agree to the university <a class="text-primary underline decoration-primary/30" href="#">academic integrity policies</a>.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-10 px-6 relative z-10 border-t border-emerald-900/5">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-emerald-900/50 text-[11px] font-bold uppercase tracking-widest">
+<div class="flex items-center gap-6">
+<span>© 2024 University Admission Board</span>
+<div class="hidden md:block w-1 h-1 bg-emerald-900/20 rounded-full"></div>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+</div>
+<div class="flex gap-8">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Terminal: ADM-HK-09</span>
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">lock</span> AES-256 Verified</span>
+</div>
+</div>
+</footer>
+</body></html>
