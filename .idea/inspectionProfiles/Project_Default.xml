@@ -1,0 +1,85 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="amqp" />
+          <option value="anyio" />
+          <option value="asgiref" />
+          <option value="billiard" />
+          <option value="celery" />
+          <option value="certifi" />
+          <option value="charset-normalizer" />
+          <option value="click" />
+          <option value="click-didyoumean" />
+          <option value="click-plugins" />
+          <option value="click-repl" />
+          <option value="colorama" />
+          <option value="contourpy" />
+          <option value="cron_descriptor" />
+          <option value="cycler" />
+          <option value="diff-match-patch" />
+          <option value="dj-database-url" />
+          <option value="Django" />
+          <option value="django-celery-beat" />
+          <option value="django-import-export" />
+          <option value="django-recaptcha" />
+          <option value="django-redis" />
+          <option value="django-rest-passwordreset" />
+          <option value="django-simple-history" />
+          <option value="django-timezone-field" />
+          <option value="django-unfold" />
+          <option value="django_celery_results" />
+          <option value="djangorestframework" />
+          <option value="filelock" />
+          <option value="fonttools" />
+          <option value="fsspec" />
+          <option value="gradio_client" />
+          <option value="gunicorn" />
+          <option value="h11" />
+          <option value="httpcore" />
+          <option value="httpx" />
+          <option value="huggingface-hub" />
+          <option value="idna" />
+          <option value="joblib" />
+          <option value="kiwisolver" />
+          <option value="kombu" />
+          <option value="matplotlib" />
+          <option value="numpy" />
+          <option value="packaging" />
+          <option value="pillow" />
+          <option value="prompt_toolkit" />
+          <option value="psycopg2" />
+          <option value="psycopg2-binary" />
+          <option value="pyparsing" />
+          <option value="python-crontab" />
+          <option value="python-dateutil" />
+          <option value="python-decouple" />
+          <option value="PyYAML" />
+          <option value="redis" />
+          <option value="requests" />
+          <option value="scikit-learn" />
+          <option value="scipy" />
+          <option value="setuptools" />
+          <option value="six" />
+          <option value="sniffio" />
+          <option value="sqlparse" />
+          <option value="tablib" />
+          <option value="threadpoolctl" />
+          <option value="tqdm" />
+          <option value="typing_extensions" />
+          <option value="tzdata" />
+          <option value="urllib3" />
+          <option value="vine" />
+          <option value="wcwidth" />
+          <option value="websockets" />
+          <option value="wheel" />
+          <option value="whitenoise" />
+          <option value="wordcloud" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
