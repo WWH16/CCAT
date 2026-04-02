@@ -7,4 +7,5 @@ urlpatterns = [
     path('ccat_admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('ccat_admin/question_management/', views.question_management, name='question_management'),
     path('ccat_admin/exam_settings/', views.exam_settings, name='exam_settings'),
+    path('logout/', views.admin_logout, name='admin_logout'),
 ]

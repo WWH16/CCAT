@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from .models import Student, ExamResult, Question
@@ -60,3 +60,7 @@ def question_management(request):
 @login_required(login_url='admin_login')
 def exam_settings(request):
     return render(request, 'ccat_admin/exam_settings.html')
+
+def admin_logout(request):
+    logout(request)
+    return redirect('admin_login')
