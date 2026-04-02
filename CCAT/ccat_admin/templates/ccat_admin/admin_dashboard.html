@@ -1,15 +1,20 @@
 {% extends 'ccat_admin/admin_base.html' %}
+{% load static %}
 
-{% block title %}Dashboard — Admin Panel{% endblock %}
+{% block title %}Dashboard | ISU Palanan Admission{% endblock %}
 
 {% block content %}
 
-<!-- Page Header -->
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
     <div>
-        <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-1">Administrative Overview</h1>
-        <p class="text-sm text-outline max-w-xl leading-relaxed">
-            Welcome back, Administrator. Here is the current status of student registration and real-time performance metrics.
+        <nav class="flex items-center gap-2 text-sm text-outline mb-2">
+            <span>ISU Palanan</span>
+            <span class="material-symbols-outlined text-xs">chevron_right</span>
+            <span class="text-on-surface">Administrative Overview</span>
+        </nav>
+        <h1 class="text-3xl md:text-[2.75rem] font-extrabold text-primary tracking-tight leading-tight font-headline">Administrative Overview</h1>
+        <p class="text-sm text-on-surface-variant max-w-xl leading-relaxed mt-2">
+            Welcome back. Here is the current status of student registration and real-time performance metrics for the Palanan Campus.
         </p>
     </div>
     <button class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95">
@@ -18,18 +23,16 @@
     </button>
 </div>
 
-<!-- Summary Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
 
-    <!-- Total Students -->
-    <div class="bg-surface-container-low rounded-xl p-6 hover:-translate-y-1 transition-transform">
+    <div class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Total Students (Session)</p>
                 <h3 class="text-3xl font-bold text-on-surface">1,240</h3>
                 <p class="text-xs text-primary font-medium mt-2 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">event</span>
-                    Session: Fall 2023
+                    Academic Year 2026
                 </p>
             </div>
             <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -38,8 +41,7 @@
         </div>
     </div>
 
-    <!-- Passed Students -->
-    <div class="bg-surface-container-low rounded-xl p-6 hover:-translate-y-1 transition-transform">
+    <div class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Passed Students</p>
@@ -55,8 +57,7 @@
         </div>
     </div>
 
-    <!-- Failed Students -->
-    <div class="bg-surface-container-low rounded-xl p-6 hover:-translate-y-1 transition-transform">
+    <div class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Failed Students</p>
@@ -74,15 +75,12 @@
 
 </div>
 
-<!-- Recent Student Activity Table -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-6">
 
-    <!-- Table Header -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <h2 class="text-lg font-bold text-on-surface whitespace-nowrap">Recent Student Activity</h2>
+        <h2 class="text-lg font-bold text-on-surface whitespace-nowrap font-headline">Recent Student Activity</h2>
         <div class="flex flex-wrap items-center gap-3">
 
-            <!-- Search -->
             <div class="relative flex-1 min-w-[180px] max-w-xs">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
                 <input
@@ -92,7 +90,6 @@
                 />
             </div>
 
-            <!-- Department Filter -->
             <div class="relative">
                 <select class="appearance-none pl-4 pr-9 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
                     <option value="">All Departments</option>
@@ -104,133 +101,46 @@
                 <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-lg pointer-events-none">expand_more</span>
             </div>
 
-            <!-- Status Filter -->
-            <div class="relative">
-                <select class="appearance-none pl-4 pr-9 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
-                    <option value="">All Statuses</option>
-                    <option value="pass">Passed</option>
-                    <option value="fail">Failed</option>
-                    <option value="progress">In Progress</option>
-                </select>
-                <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-lg pointer-events-none">expand_more</span>
-            </div>
-
             <button class="text-sm font-semibold text-primary hover:underline whitespace-nowrap">View All Logs</button>
         </div>
     </div>
 
-    <!-- Table -->
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="border-b border-surface-container">
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest">Student Name</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest">Exam ID</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest">Score</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest">Status</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest">Date</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student Name</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Exam ID</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Score</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Status</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-container">
-
                 <tr class="hover:bg-surface-container-high transition-colors">
-                    <td class="py-4">
+                    <td class="py-4 px-2">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">JM</div>
                             <span class="text-sm font-semibold text-on-surface">Julianne Moore</span>
                         </div>
                     </td>
-                    <td class="py-4 text-sm text-outline font-mono">#MATH-102</td>
-                    <td class="py-4 text-sm font-bold text-on-surface">92%</td>
-                    <td class="py-4">
+                    <td class="py-4 px-2 text-sm text-outline font-mono">#MATH-102</td>
+                    <td class="py-4 px-2 text-sm font-bold text-on-surface">92%</td>
+                    <td class="py-4 px-2">
                         <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800">Pass</span>
                     </td>
-                    <td class="py-4 text-sm text-outline">Oct 24, 2023</td>
+                    <td class="py-4 px-2 text-sm text-outline">Oct 24, 2023</td>
                 </tr>
-
-                <tr class="hover:bg-surface-container-high transition-colors">
-                    <td class="py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-error/20 flex items-center justify-center text-error font-bold text-xs">MT</div>
-                            <span class="text-sm font-semibold text-on-surface">Marcus Thorne</span>
-                        </div>
-                    </td>
-                    <td class="py-4 text-sm text-outline font-mono">#PHYS-201</td>
-                    <td class="py-4 text-sm font-bold text-on-surface">45%</td>
-                    <td class="py-4">
-                        <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-800">Fail</span>
-                    </td>
-                    <td class="py-4 text-sm text-outline">Oct 24, 2023</td>
-                </tr>
-
-                <tr class="hover:bg-surface-container-high transition-colors">
-                    <td class="py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">ER</div>
-                            <span class="text-sm font-semibold text-on-surface">Elena Rodriguez</span>
-                        </div>
-                    </td>
-                    <td class="py-4 text-sm text-outline font-mono">#LIT-098</td>
-                    <td class="py-4 text-sm font-bold text-on-surface">88%</td>
-                    <td class="py-4">
-                        <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800">Pass</span>
-                    </td>
-                    <td class="py-4 text-sm text-outline">Oct 23, 2023</td>
-                </tr>
-
-                <tr class="hover:bg-surface-container-high transition-colors">
-                    <td class="py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-700 font-bold text-xs">KL</div>
-                            <span class="text-sm font-semibold text-on-surface">Kevin Lim</span>
-                        </div>
-                    </td>
-                    <td class="py-4 text-sm text-outline font-mono">#BIO-305</td>
-                    <td class="py-4 text-sm font-bold text-on-surface">71%</td>
-                    <td class="py-4">
-                        <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-100 text-yellow-800">In Progress</span>
-                    </td>
-                    <td class="py-4 text-sm text-outline">Oct 23, 2023</td>
-                </tr>
-
-                <tr class="hover:bg-surface-container-high transition-colors">
-                    <td class="py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">SP</div>
-                            <span class="text-sm font-semibold text-on-surface">Sofia Patel</span>
-                        </div>
-                    </td>
-                    <td class="py-4 text-sm text-outline font-mono">#CHEM-110</td>
-                    <td class="py-4 text-sm font-bold text-on-surface">95%</td>
-                    <td class="py-4">
-                        <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800">Pass</span>
-                    </td>
-                    <td class="py-4 text-sm text-outline">Oct 22, 2023</td>
-                </tr>
-
-            </tbody>
+                </tbody>
         </table>
     </div>
 
-    <!-- Pagination -->
     <div class="mt-6 flex justify-end">
         <nav aria-label="Pagination">
             <ul class="inline-flex -space-x-px text-sm">
-                <li>
-                    <a href="#" class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-l-lg hover:bg-surface-container-low transition-colors">Previous</a>
-                </li>
-                <li>
-                    <a href="#" aria-current="page" class="flex items-center justify-center px-4 h-9 text-white border border-primary bg-primary font-bold">1</a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center justify-center px-4 h-9 leading-tight text-outline bg-white border border-outline-variant/30 hover:bg-surface-container-low transition-colors">2</a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center justify-center px-4 h-9 leading-tight text-outline bg-white border border-outline-variant/30 hover:bg-surface-container-low transition-colors">3</a>
-                </li>
-                <li>
-                    <a href="#" class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-r-lg hover:bg-surface-container-low transition-colors">Next</a>
-                </li>
+                <li><a href="#" class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-l-lg hover:bg-surface-container-low transition-colors">Previous</a></li>
+                <li><a href="#" aria-current="page" class="flex items-center justify-center px-4 h-9 text-white border border-primary bg-primary font-bold">1</a></li>
+                <li><a href="#" class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-r-lg hover:bg-surface-container-low transition-colors">Next</a></li>
             </ul>
         </nav>
     </div>

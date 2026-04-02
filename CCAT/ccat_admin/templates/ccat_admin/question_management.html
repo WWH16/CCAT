@@ -1,18 +1,20 @@
 {% extends 'ccat_admin/admin_base.html' %}
 {% load static %}
 
-{% block title %}Question Repository | AdmissionPortal{% endblock %}
+{% block title %}Question Repository | ISU Palanan Admission{% endblock %}
 
 {% block content %}
 <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
     <div>
         <nav class="flex items-center gap-2 text-sm text-outline mb-2">
+            <span>ISU Palanan</span>
+            <span class="material-symbols-outlined text-xs">chevron_right</span>
             <span>Repository</span>
             <span class="material-symbols-outlined text-xs">chevron_right</span>
             <span class="text-on-surface">Questions</span>
         </nav>
         <h1 class="text-[2.75rem] font-extrabold tracking-tight text-primary leading-tight font-headline">Question Repository</h1>
-        <p class="text-on-surface-variant max-w-2xl mt-2">Manage, categorize, and validate the institution's comprehensive database of admission test queries.</p>
+        <p class="text-on-surface-variant max-w-2xl mt-2">Manage, categorize, and validate the Palanan Extension Campus comprehensive database of admission test queries.</p>
     </div>
     <div class="flex items-center gap-3">
         <button class="px-6 py-2.5 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/5 transition-colors flex items-center gap-2 text-sm">
@@ -95,38 +97,9 @@
                     </div>
                 </td>
             </tr>
-            <tr class="hover:bg-surface-container-low/50 transition-colors">
-                <td class="px-6 py-5 max-w-md">
-                    <div class="flex items-start gap-3">
-                        <div class="mt-1 w-2 h-2 rounded-full bg-secondary shrink-0" title="Needs Review"></div>
-                        <div>
-                            <p class="text-on-surface font-medium line-clamp-2">Identify the grammatically correct sentence from the following options regarding the use of subjunctive mood.</p>
-                            <span class="text-[10px] text-outline font-mono mt-1 block">ID: LANG-2024-042</span>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-5">
-                    <span class="text-xs px-3 py-1 bg-surface-container-high rounded-full text-on-surface-variant font-medium">Single Select</span>
-                </td>
-                <td class="px-6 py-5">
-                    <span class="text-xs font-medium text-on-surface">Language</span>
-                </td>
-                <td class="px-6 py-5">
-                    <span class="text-sm text-outline">Nov 02, 2023</span>
-                </td>
-                <td class="px-6 py-5 text-right">
-                    <div class="flex justify-end gap-2">
-                        <button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-all">
-                            <span class="material-symbols-outlined text-[20px]">edit</span>
-                        </button>
-                        <button class="p-2 hover:bg-error/10 rounded-lg text-error transition-all">
-                            <span class="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
+            </tbody>
     </table>
+
     <div class="bg-surface-container/30 px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
         <span class="text-xs font-medium text-outline">Showing <span class="text-on-surface">1 - 2</span> of 1,248 questions</span>
         <div class="flex items-center gap-1">
