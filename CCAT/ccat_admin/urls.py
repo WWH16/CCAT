@@ -5,4 +5,5 @@ urlpatterns = [
     # This maps the root of this app to your home view
     path('', views.home, name='home'),
     path('ccat_admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('ccat_admin/question_management/', views.question_management, name='question_management'),
 ]
