@@ -4,9 +4,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>College Admission Test | Hero Portal</title>
+<!-- 1. Tailwind first -->
 <script src="{% static 'js/tailwind.min.js' %}"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<!-- 2. Then your local font -->
+<link href="{% static 'css/font.css' %}" rel="stylesheet"/>
+<link href="{% static 'css/material-symbols.css' %}" rel="stylesheet"/>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -72,7 +75,7 @@
       }
     </script>
 <style>body {
-    font-family: "Inter", sans-serif
+    font-family: "Inter", sans-serif !important;
     }
 .material-symbols-outlined {
     font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
@@ -161,7 +164,7 @@
 </div>
 <form class="space-y-6">
 <div class="space-y-2">
-<label class="text-on-surface font-bold text-[11px] uppercase tracking-[0.2em] block px-1" for="student_id">LRN</label>
+<label class="text-on-surface font-bold text-[11px] uppercase tracking-[0.2em] block px-1" for="student_id">Identification</label>
 <div class="relative group">
 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
 <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors" data-icon="badge">badge</span>
