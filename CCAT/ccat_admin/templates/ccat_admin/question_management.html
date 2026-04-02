@@ -21,7 +21,7 @@
             <span class="material-symbols-outlined text-lg">download</span>
             Export Questions
         </button>
-        <button class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-container text-white font-semibold shadow-lg hover:shadow-xl hover:opacity-95 transition-all flex items-center gap-2 text-sm">
+        <button onclick="toggleModal('questionModal', true)" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-container text-white font-semibold shadow-lg hover:shadow-xl hover:opacity-95 transition-all flex items-center gap-2 text-sm">
             <span class="material-symbols-outlined text-lg">add</span>
             Add New Question
         </button>
@@ -29,94 +29,113 @@
 </header>
 
 <div class="bg-surface-container-low p-4 rounded-xl mb-6 flex flex-wrap items-center gap-4 border border-outline-variant/10">
-    <div class="flex-1 min-w-[300px] relative">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
-        <input class="w-full pl-12 pr-4 py-3 rounded-lg border-none bg-surface-container-lowest shadow-sm focus:ring-2 focus:ring-primary text-sm" placeholder="Search questions by text, tag, or ID..." type="text"/>
     </div>
-    <div class="relative group">
-        <select class="appearance-none pl-4 pr-10 py-3 rounded-lg border-none bg-surface-container-lowest shadow-sm focus:ring-2 focus:ring-primary text-sm font-medium min-w-[160px]">
-            <option>All Categories</option>
-            <option>Mathematics</option>
-            <option>Language Proficiency</option>
-            <option>General Science</option>
-            <option>Logical Reasoning</option>
-        </select>
-        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
-    </div>
-    <div class="h-10 w-[1px] bg-outline-variant/30 hidden lg:block"></div>
-    <div class="flex items-center gap-3 px-2">
-        <span class="text-sm font-medium text-on-surface-variant">Shuffle Questions</span>
-        <button class="w-12 h-6 bg-outline-variant rounded-full relative p-1 transition-colors hover:bg-primary/40">
-            <div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
-        </button>
-    </div>
-    <button class="p-3 bg-surface-container-lowest rounded-lg shadow-sm text-outline hover:text-primary transition-colors">
-        <span class="material-symbols-outlined">filter_list</span>
-    </button>
-</div>
 
 <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
     <table class="w-full text-left border-collapse">
-        <thead>
-            <tr class="bg-surface-container text-xs font-bold uppercase tracking-widest text-outline">
-                <th class="px-6 py-4">Question Details</th>
-                <th class="px-6 py-4">Type</th>
-                <th class="px-6 py-4">Category</th>
-                <th class="px-6 py-4">Created Date</th>
-                <th class="px-6 py-4 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-outline-variant/10">
-            <tr class="hover:bg-surface-container-low/50 transition-colors">
-                <td class="px-6 py-5 max-w-md">
-                    <div class="flex items-start gap-3">
-                        <div class="mt-1 w-2 h-2 rounded-full bg-primary shrink-0" title="Validated"></div>
-                        <div>
-                            <p class="text-on-surface font-medium line-clamp-2">In a triangle ABC, if ∠A = 60° and the ratio of sides b:c is 1:√3, find ∠B.</p>
-                            <span class="text-[10px] text-outline font-mono mt-1 block">ID: MATH-2024-001</span>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-5">
-                    <span class="text-xs px-3 py-1 bg-surface-container-high rounded-full text-on-surface-variant font-medium">Multiple Choice</span>
-                </td>
-                <td class="px-6 py-5">
-                    <span class="text-xs font-medium text-on-surface">Mathematics</span>
-                </td>
-                <td class="px-6 py-5">
-                    <span class="text-sm text-outline">Oct 12, 2023</span>
-                </td>
-                <td class="px-6 py-5 text-right">
-                    <div class="flex justify-end gap-2">
-                        <button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-all">
-                            <span class="material-symbols-outlined text-[20px]">edit</span>
-                        </button>
-                        <button class="p-2 hover:bg-error/10 rounded-lg text-error transition-all">
-                            <span class="material-symbols-outlined text-[20px]">delete</span>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-    </table>
-
-    <div class="bg-surface-container/30 px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
-        <span class="text-xs font-medium text-outline">Showing <span class="text-on-surface">1 - 2</span> of 1,248 questions</span>
-        <div class="flex items-center gap-1">
-            <button class="p-2 hover:bg-surface-container-high rounded text-outline disabled:opacity-30" disabled>
-                <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button class="w-8 h-8 rounded bg-primary text-white text-xs font-bold">1</button>
-            <button class="w-8 h-8 rounded hover:bg-surface-container-high text-xs font-medium transition-colors">2</button>
-            <button class="p-2 hover:bg-surface-container-high rounded text-outline">
-                <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-        </div>
-    </div>
+        </table>
 </div>
 
-<button class="fixed bottom-8 right-8 w-14 h-14 bg-secondary-container text-on-secondary-container rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50 group">
-    <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
-    <span class="absolute right-full mr-4 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Quick Analysis</span>
-</button>
+<div id="questionModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="toggleModal('questionModal', false)"></div>
+
+    <form method="POST" action="{% url 'question_management' %}" class="relative bg-surface-container-lowest w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        {% csrf_token %}
+
+        <div class="px-8 py-6 border-b border-outline-variant/10 flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-on-surface">Add New Question</h2>
+                <p class="text-xs text-on-surface-variant font-medium mt-1">Fill in the details to expand the question library.</p>
+            </div>
+            <button type="button" onclick="toggleModal('questionModal', false)" class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6 no-scrollbar">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Category</label>
+                    <select name="category" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Type</label>
+                    <select name="question_type" onchange="switchLayout(this.value)" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
+                        <option value="MCQ">Multiple Choice</option>
+                        <option value="SS">True / False</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Text</label>
+                <textarea name="text" required class="w-full bg-surface-container border-none rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary resize-none" rows="3" placeholder="Enter question..."></textarea>
+            </div>
+
+            <div id="mcqLayout" class="space-y-4">
+                <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Options & Correct Answer</label>
+                <div class="space-y-3">
+                    {% for letter in "ABCD"|make_list %}
+                    <div class="flex items-center gap-3 p-1 rounded-xl hover:bg-surface-container group">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-container-highest text-on-surface font-bold text-xs group-hover:bg-white transition-colors shadow-sm">{{ letter }}</div>
+                        <input type="text" name="option_{{ letter }}" class="flex-1 px-4 py-2.5 bg-surface-container border-none rounded-lg text-sm" placeholder="Choice {{ letter }}">
+                        <input type="radio" name="correct_option" value="{{ letter }}" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="tfLayout" class="hidden space-y-4">
+                <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">True/False Selection</label>
+                <div class="flex gap-4">
+                    <label class="flex-1 flex items-center justify-between p-4 bg-surface-container rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
+                        <span class="font-bold">True</span>
+                        <input type="radio" name="correct_tf" value="True" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
+                    </label>
+                    <label class="flex-1 flex items-center justify-between p-4 bg-surface-container rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
+                        <span class="font-bold">False</span>
+                        <input type="radio" name="correct_tf" value="False" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-8 py-6 bg-surface-container-low border-t border-outline-variant/10 flex items-center justify-end gap-3 rounded-b-2xl">
+            <button type="button" onclick="toggleModal('questionModal', false)" class="px-6 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-md">Cancel</button>
+            <button type="submit" class="px-8 py-2.5 text-sm font-semibold bg-primary text-on-primary rounded-md shadow-lg hover:opacity-90 transition-all">Save Question</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleModal(modalId, show) {
+        const modal = document.getElementById(modalId);
+        if (show) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Stop page scroll when modal is open
+        } else {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    function switchLayout(selectedType) {
+        const mcq = document.getElementById('mcqLayout');
+        const tf = document.getElementById('tfLayout');
+
+        if (selectedType === 'MCQ') {
+            mcq.classList.remove('hidden');
+            tf.classList.add('hidden');
+        } else {
+            mcq.classList.add('hidden');
+            tf.classList.remove('hidden');
+        }
+    }
+</script>
 {% endblock %}
