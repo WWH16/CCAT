@@ -4,108 +4,94 @@
 {% block title %}Exam Instructions | ISU Palanan Admission{% endblock %}
 
 {% block content %}
-<main class="relative z-10 flex-1 flex flex-col items-center justify-center py-12 px-4">
-    <div class="w-full max-w-4xl space-y-8">
-
-        <div class="text-center space-y-3">
+<main class="relative z-10 flex-1 flex flex-col items-center justify-center py-6 px-4">
+    <div class="w-full max-w-4xl space-y-6">
+        <div class="text-center space-y-2">
             <p class="text-primary font-bold tracking-[0.2em] uppercase text-[11px]">College Admission Test</p>
-            <h1 class="text-4xl md:text-5xl font-extrabold text-on-surface tracking-tight">General Instructions & Integrity Agreement</h1>
-            <div class="w-24 h-1 bg-primary mx-auto rounded-full mt-4"></div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">Instructions & Agreement</h1>
+            <div class="w-20 h-1 bg-primary mx-auto rounded-full mt-2"></div>
         </div>
 
-        <section class="bg-white rounded-2xl p-8 md:p-10 shadow-xl border border-emerald-900/5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-
-                <div class="space-y-6">
+        <section class="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-emerald-900/5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4">
                     <div>
                         <span class="text-[10px] uppercase tracking-widest text-outline font-bold">Session</span>
-                        <h2 class="text-2xl font-bold text-on-surface mt-1">{{ session_name }}</h2>
+                        <h2 class="text-xl font-bold text-on-surface mt-1">{{ session_name }}</h2>
                     </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center">
-                            <span class="text-[10px] font-bold uppercase text-outline mb-1">Questions</span>
-                            <span class="text-2xl font-bold text-primary">{{ total_questions }}</span>
-                            <span class="text-[10px] text-outline">Total</span>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-surface-container-low p-3 rounded-xl flex flex-col items-center text-center">
+                            <span class="text-[9px] font-bold uppercase text-outline mb-1">Questions</span>
+                            <span class="text-xl font-bold text-primary">{{ total_questions }}</span>
                         </div>
-                        <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center">
-                            <span class="text-[10px] font-bold uppercase text-outline mb-1">Time Limit</span>
-                            <span class="text-2xl font-bold text-primary">{{ config.duration_minutes }}</span>
-                            <span class="text-[10px] text-outline">Minutes</span>
+                        <div class="bg-surface-container-low p-3 rounded-xl flex flex-col items-center text-center">
+                            <span class="text-[9px] font-bold uppercase text-outline mb-1">Time Limit</span>
+                            <span class="text-xl font-bold text-primary">{{ config.duration_minutes }}</span>
                         </div>
-                        <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center border-2 border-primary/10">
-                            <span class="text-[10px] font-bold uppercase text-outline mb-1">Sections</span>
-                            <span class="text-2xl font-bold text-primary">{{ total_sections }}</span>
-                            <span class="text-[10px] text-outline">Categories</span>
+                        <div class="bg-surface-container-low p-3 rounded-xl flex flex-col items-center text-center border-2 border-primary/10">
+                            <span class="text-[9px] font-bold uppercase text-outline mb-1">Sections</span>
+                            <span class="text-xl font-bold text-primary">{{ total_sections }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-outline border-b border-outline-variant/30 pb-2">Examination Rules</h3>
-                    <ul class="space-y-4">
-                        <li class="flex gap-4">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-red-50 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px] text-red-600">gavel</span>
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-outline border-b border-outline-variant/30 pb-1">Examination Rules</h3>
+                    <ul class="space-y-3">
+                        <li class="flex gap-3">
+                            <div class="flex-shrink-0 w-7 h-7 rounded-full bg-red-50 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[16px] text-red-600">gavel</span>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold text-on-surface">Anti-Cheat</p>
-                                <p class="text-xs text-on-surface-variant leading-relaxed">Do not leave the exam tab. A {{ config.tab_switch_deduction }}-minute penalty applies per violation.</p>
-                            </div>
+                            <p class="text-xs text-on-surface-variant leading-relaxed"><b>Anti-Cheat:</b> No tab switching. A {{ config.tab_switch_deduction }}m penalty applies.</p>
                         </li>
-                        <li class="flex gap-4">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px] text-primary">list_alt</span>
+                        <li class="flex gap-3">
+                            <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[16px] text-primary">list_alt</span>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold text-on-surface">Subject Coverage</p>
-                                <p class="text-xs text-on-surface-variant leading-relaxed">
-                                    Includes:
-                                    <span class="font-bold text-primary">
-                                        {% for cat in categorys %}{{ cat.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                                    </span>
-                                </p>
-                            </div>
+                            <p class="text-xs text-on-surface-variant leading-relaxed"><b>Coverage:</b> Math, Science, Filipino, History</p>
                         </li>
-                        <li class="flex gap-4">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px] text-primary">grid_view</span>
+                        <li class="flex gap-3">
+                            <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[16px] text-primary">timer</span>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold text-on-surface">Navigation</p>
-                                <p class="text-xs text-on-surface-variant leading-relaxed">Questions must be answered in order. You can go back, but not skip ahead.</p>
+                            <p class="text-xs text-on-surface-variant leading-relaxed"><b>Timer:</b> Automatic submission once the time expires.</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <div class="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[16px] text-primary">arrow_back</span>
                             </div>
+                            <p class="text-xs text-on-surface-variant leading-relaxed"><b>Nav:</b> You can go back, but cannot skip ahead to questions.</p>
                         </li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        <div class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-r-xl flex items-start gap-4 shadow-sm">
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl flex items-start gap-4 shadow-sm">
             <span class="material-symbols-outlined text-amber-600 mt-0.5" style="font-variation-settings:'FILL' 1">warning</span>
             <div>
-                <h4 class="text-sm font-bold text-amber-900">Important Notice</h4>
-                <p class="text-sm text-amber-800 mt-0.5">The <b>{{ config.duration_minutes }}-minute</b> timer starts the moment you click the button below. Ensure you have a stable connection.</p>
+                <h4 class="text-xs font-bold text-amber-900 uppercase">Important Notice</h4>
+                <p class="text-xs text-amber-800 mt-0.5 font-medium leading-relaxed">The <b>{{ config.duration_minutes }}-minute</b> timer starts immediately. Do not refresh the page after starting.</p>
             </div>
         </div>
 
-        <form method="GET" action="{% url 'exam_start' %}">
-        <div class="flex flex-col items-center space-y-6 pt-2">
-            <div class="flex items-center gap-3">
-                <input id="agreement" type="checkbox" required
-                       class="w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer"/>
-                <label for="agreement" class="text-sm font-medium text-on-surface-variant cursor-pointer">
-                    I, <b>{{ student.first_name }} {{ student.last_name }}</b>, have read the instructions and agree to the code of conduct.
-                </label>
+        <form method="GET" action="{% url 'exam_start' %}" class="space-y-4">
+            <div class="flex flex-col items-center space-y-4 pt-1">
+                <div class="flex items-center gap-3">
+                    <input id="agreement" type="checkbox" required
+                           class="w-4 h-4 rounded border-outline text-primary focus:ring-primary cursor-pointer"/>
+                    <label for="agreement" class="text-xs font-medium text-on-surface-variant cursor-pointer">
+                        I, <b>{{ student.first_name }} {{ student.last_name }}</b>, agree to the rules.
+                    </label>
+                </div>
+
+                <button type="submit"
+                        class="group inline-flex items-center justify-center gap-3 px-10 py-4 font-bold text-white rounded-xl shadow-lg hover:shadow-xl transition-all bg-primary text-sm tracking-widest">
+                    START EXAMINATION
+                    <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </button>
             </div>
-
-            <button type="submit"
-                    class="group inline-flex items-center justify-center gap-3 px-12 py-5 font-bold text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all bg-primary">
-                START EXAMINATION
-                <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </button>
-        </div>
-    </form>
-
+        </form>
     </div>
 </main>
 {% endblock %}
