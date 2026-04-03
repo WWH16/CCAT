@@ -170,8 +170,8 @@
                         Previous
                     </button>
                     <button type="button" id="nextBtn" onclick="nextQuestion()" class="flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg hover:shadow-lg transition-all active:scale-95">
-                        Next Question
-                        <span class="material-symbols-outlined">arrow_forward</span>
+                        <span id="nextBtnText">Next Question</span>
+                        <span id="nextBtnIcon" class="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </div>
             </form>
@@ -268,7 +268,17 @@ function goToQuestion(index) {
 
     updateFlagBtn();
     updateGrid();
-    document.getElementById('nextBtn').style.display = (index === TOTAL_QUESTIONS - 1) ? 'none' : 'flex';
+
+    const nextBtnText = document.getElementById('nextBtnText');
+    const nextBtnIcon = document.getElementById('nextBtnIcon');
+
+    if (index === TOTAL_QUESTIONS - 1) {
+        nextBtnText.textContent = "Review & Submit";
+        nextBtnIcon.textContent = "done_all";
+    } else {
+        nextBtnText.textContent = "Next Question";
+        nextBtnIcon.textContent = "arrow_forward";
+    }
 }
 
 function onAnswer(qIndex, input) {
@@ -284,7 +294,12 @@ function onAnswer(qIndex, input) {
 }
 
 function nextQuestion() {
-    if (answers[currentIndex] !== undefined) {
+    if (currentIndex === TOTAL_QUESTIONS - 1) {
+        openSubmitModal();
+        return;
+    }
+
+    if (answers[currentIndex] !== undefined || flagged.has(currentIndex)) {
         goToQuestion(currentIndex + 1);
     } else {
         const card = document.getElementById(`question${currentIndex}`).querySelector('.bg-surface-container-lowest');
@@ -296,23 +311,37 @@ function nextQuestion() {
 function prevQuestion() { goToQuestion(currentIndex - 1); }
 
 function jumpToQuestion(idx) {
-    if (idx <= currentIndex || answers[idx] !== undefined || (idx > 0 && answers[idx-1] !== undefined)) {
+    if (idx <= currentIndex || answers[idx] !== undefined || (idx > 0 && (answers[idx-1] !== undefined || flagged.has(idx-1)))) {
         goToQuestion(idx);
     }
 }
 
 function jumpToSection(secIdx) {
     const sec = SECTIONS[secIdx];
-    if (sec.start <= currentIndex || answers[sec.start] !== undefined) {
+    if (sec.start <= currentIndex || answers[sec.start] !== undefined || flagged.has(sec.start)) {
         goToQuestion(sec.start);
     }
 }
 
 function toggleFlag() {
-    if (flagged.has(currentIndex)) flagged.delete(currentIndex);
-    else flagged.add(currentIndex);
+    let wasFlagged = flagged.has(currentIndex);
+
+    if (wasFlagged) {
+        flagged.delete(currentIndex);
+    } else {
+        flagged.add(currentIndex);
+    }
+
     updateFlagBtn();
     updateGrid();
+
+    // If we just added a flag, auto-move to the next question
+    if (!wasFlagged) {
+        // Short delay to let the user see the flag color change before moving
+        setTimeout(() => {
+            nextQuestion();
+        }, 200);
+    }
 }
 
 function updateFlagBtn() {
@@ -325,12 +354,18 @@ function updateGrid() {
         const btn = document.getElementById(`gridBtn${i}`);
         btn.className = "grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold transition-all ";
 
-        if (i === currentIndex) btn.classList.add("ring-2", "ring-primary", "bg-white", "text-primary");
-        else if (answers[i] !== undefined) btn.classList.add("bg-primary", "text-white");
-        else if (flagged.has(i)) btn.classList.add("bg-secondary-container", "text-on-secondary-container");
-        else btn.classList.add("bg-surface-container", "text-outline");
+        if (i === currentIndex) {
+            btn.classList.add("ring-2", "ring-primary", "bg-white", "text-primary");
+        } else if (flagged.has(i)) {
+            btn.classList.add("bg-secondary-container", "text-on-secondary-container");
+        } else if (answers[i] !== undefined) {
+            btn.classList.add("bg-primary", "text-white");
+        } else {
+            btn.classList.add("bg-surface-container", "text-outline");
+        }
 
-        btn.disabled = !(i <= currentIndex || answers[i] !== undefined || (i > 0 && answers[i-1] !== undefined));
+        let canAccess = (i <= currentIndex) || (i > 0 && (answers[i-1] !== undefined || flagged.has(i-1)));
+        btn.disabled = !canAccess;
     }
     document.getElementById('savedCount').textContent = `${Object.keys(answers).length} / ${TOTAL_QUESTIONS} Saved`;
 }
