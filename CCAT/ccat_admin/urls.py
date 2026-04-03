@@ -9,4 +9,6 @@ urlpatterns = [
     path('ccat_admin/exam_settings/', views.exam_settings, name='exam_settings'),
     path('logout/', views.admin_logout, name='admin_logout'),
     path('questions/export/', views.export_questions, name='export_questions'),
+    path('ccat_admin/questions/<int:question_id>/edit/',   views.edit_question,   name='edit_question'),
+    path('ccat_admin/questions/<int:question_id>/delete/', views.delete_question, name='delete_question'),
 ]

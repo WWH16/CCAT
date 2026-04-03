@@ -138,3 +138,35 @@ def export_questions(request):
         ])
 
     return response
+
+@login_required(login_url='admin_login')
+def edit_question(request, question_id):
+    question = get_object_or_404(Question, id=question_id)
+    if request.method == 'POST':
+        question.question_text = request.POST.get('text')
+        question.category_id   = request.POST.get('category')
+        question.question_type = request.POST.get('question_type')
+        question.save()
+
+        question.options.all().delete()
+
+        if question.question_type == 'MCQ':
+            correct_letter = request.POST.get('correct_option')
+            for letter in ['A', 'B', 'C', 'D']:
+                opt_text = request.POST.get(f'option_{letter}', '').strip()
+                if opt_text:
+                    Option.objects.create(question=question, option_text=opt_text, is_correct=(letter == correct_letter))
+        else:
+            correct_tf = request.POST.get('correct_tf')
+            for label in ['True', 'False']:
+                Option.objects.create(question=question, option_text=label, is_correct=(label == correct_tf))
+
+    return redirect('question_management')
+
+
+@login_required(login_url='admin_login')
+def delete_question(request, question_id):
+    question = get_object_or_404(Question, id=question_id)
+    if request.method == 'POST':
+        question.delete()
+    return redirect('question_management')
