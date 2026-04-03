@@ -2,12 +2,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>College Admission Test | ISU Palanan</title>
     <script src="{% static 'js/tailwind.min.js' %}"></script>
-    <link href="{% static 'css/font.css' %}" rel="stylesheet"/>
-    <link href="{% static 'css/material-symbols.css' %}" rel="stylesheet"/>
+    <link href="{% static 'css/font.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/material-symbols.css' %}" rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
             theme: {
@@ -42,355 +42,405 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .question-slide { display: none; }
         .question-slide.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .question-slide.active { animation: fadeIn 0.2s ease forwards; }
         .option-label { transition: border-color 0.15s, background-color 0.15s; }
         .option-label.selected { border-color: #004d27; background-color: #ffffff; box-shadow: 0 1px 4px rgba(0,77,39,0.1); }
-        .shake { animation: shake 0.4s ease-in-out; }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
         }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        @keyframes penalty-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); color: #ba1a1a; }
+            75% { transform: translateX(4px); color: #ba1a1a; }
+        }
+        .timer-penalty { animation: penalty-shake 0.2s ease-in-out 3; }
     </style>
 </head>
 <body class="bg-surface text-on-surface min-h-screen">
 
-<header class="fixed top-0 w-full z-50 bg-emerald-900 h-16 flex items-center justify-between px-6 shadow-lg">
-    <div class="flex items-center gap-4">
-        <img src="{% static 'images/isu_logo.jpg' %}" alt="ISU" class="h-7 w-7 object-contain opacity-80"/>
-        <span class="text-white font-bold tracking-tight hidden sm:block">College Admission Test</span>
-        <span class="h-5 w-px bg-white/20 hidden sm:block"></span>
-        <span class="text-emerald-200/70 text-sm font-medium hidden sm:block">Undergraduate Entrance 2026</span>
-    </div>
-    <div class="flex items-center gap-6">
-        <div class="flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full border border-white/10">
-            <span class="material-symbols-outlined text-emerald-100 text-lg">timer</span>
-            <span id="timerDisplay" class="text-white font-bold tracking-widest text-base">{{ config.duration_minutes }}:00</span>
+    <header class="fixed top-0 w-full z-50 bg-emerald-900 h-16 flex items-center justify-between px-6 shadow-lg">
+        <div class="flex items-center gap-4">
+            <img src="{% static 'images/isu_logo.jpg' %}" alt="ISU" class="h-7 w-7 object-contain opacity-80" />
+            <span class="text-white font-bold tracking-tight hidden sm:block">College Admission Test</span>
+            <span class="h-5 w-px bg-white/20 hidden sm:block"></span>
+            <span class="text-emerald-200/70 text-sm font-medium hidden sm:block">Undergraduate Entrance 2026</span>
         </div>
-        <div class="flex items-center gap-3">
-            <div class="text-right hidden sm:block">
-                <p class="text-white text-xs font-bold leading-none">{{ student.first_name }} {{ student.last_name }}</p>
-                <p class="text-emerald-200/70 text-[10px] tracking-wider uppercase">{{ student.lrn_number }}</p>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full border border-white/10">
+                <span class="material-symbols-outlined text-emerald-100 text-lg">timer</span>
+                <span id="timerDisplay" class="text-white font-bold tracking-widest text-base">{{ config.duration_minutes }}:00</span>
             </div>
-            <span class="material-symbols-outlined text-white text-3xl">account_circle</span>
-        </div>
-    </div>
-</header>
-
-<div class="flex pt-16 min-h-screen">
-
-    <aside class="fixed left-0 top-16 bottom-0 w-72 bg-slate-50 border-r border-slate-200 flex flex-col overflow-y-auto no-scrollbar z-40">
-        <div class="p-6 flex-1">
-            <h2 class="text-emerald-900 font-bold text-base mb-1">Exam Navigator</h2>
-            <p class="text-slate-500 text-xs mb-6">{{ student.first_name }} {{ student.last_name }}</p>
-
-            <nav class="space-y-1 mb-6" id="sectionNav">
-                {% for section in sections %}
-                <button onclick="jumpToSection({{ forloop.counter0 }})"
-                        id="sectionBtn{{ forloop.counter0 }}"
-                        class="section-btn w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-primary hover:bg-emerald-50 rounded-lg text-sm font-medium transition-all text-left">
-                    <span class="material-symbols-outlined text-lg">{{ section.icon }}</span>
-                    <span>{{ section.name }}</span>
-                </button>
-                {% endfor %}
-            </nav>
-
-            <div class="pt-4 border-t border-slate-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Question Grid</h3>
-                    <span id="savedCount" class="text-[10px] font-medium text-primary bg-emerald-50 px-2 py-0.5 rounded">0 / {{ total_questions }} Saved</span>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <p class="text-white text-xs font-bold leading-none">{{ student.first_name }} {{ student.last_name }}</p>
+                    <p class="text-emerald-200/70 text-[10px] tracking-wider uppercase">{{ student.lrn_number }}</p>
                 </div>
-                <div class="grid grid-cols-5 gap-2" id="questionGrid">
-                    {% for q in all_questions %}
-                    <button id="gridBtn{{ forloop.counter0 }}" onclick="jumpToQuestion({{ forloop.counter0 }})"
-                        class="grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold bg-surface-container text-outline transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                        {{ forloop.counter }}
+                <span class="material-symbols-outlined text-white text-3xl">account_circle</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16 min-h-screen">
+        <aside class="fixed left-0 top-16 bottom-0 w-72 bg-slate-50 border-r border-slate-200 flex flex-col overflow-y-auto no-scrollbar z-40">
+            <div class="p-6 flex-1">
+                <h2 class="text-emerald-900 font-bold text-base mb-1">Exam Navigator</h2>
+                <p class="text-slate-500 text-xs mb-6">{{ student.first_name }} {{ student.last_name }}</p>
+
+                <nav class="space-y-1 mb-6" id="sectionNav">
+                    {% for section in sections %}
+                    <button onclick="jumpToSection({{ forloop.counter0 }})" id="sectionBtn{{ forloop.counter0 }}"
+                        class="section-btn w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-primary hover:bg-emerald-50 rounded-lg text-sm font-medium transition-all text-left">
+                        <span class="material-symbols-outlined text-lg">{{ section.icon }}</span>
+                        <span>{{ section.name }}</span>
                     </button>
                     {% endfor %}
-                </div>
-                <div class="mt-4 space-y-2">
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-primary"></div><span class="text-[10px] text-slate-500">Answered</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full border-2 border-primary"></div><span class="text-[10px] text-slate-500">Current</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-secondary-container"></div><span class="text-[10px] text-slate-500">Flagged</span></div>
-                </div>
-            </div>
-        </div>
-        <div class="p-4 border-t border-slate-200">
-            <button onclick="openSubmitModal()" class="w-full flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary font-bold rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors text-sm">
-                <span class="material-symbols-outlined text-lg">assignment_turned_in</span>
-                Submit Exam
-            </button>
-        </div>
-    </aside>
+                </nav>
 
-    <main class="ml-72 flex-1 p-8 lg:p-12">
-        <div class="max-w-3xl mx-auto">
-            <div class="flex items-center justify-between mb-8">
-                <div>
-                    <span id="currentSectionLabel" class="text-xs font-bold text-primary tracking-widest uppercase mb-1 block"></span>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-on-surface">
-                        Question <span id="currentQNum">1</span> of {{ total_questions }}
-                    </h1>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span id="saveIndicator" class="text-primary font-medium text-sm flex items-center gap-1 opacity-0 transition-opacity">
-                        <span class="material-symbols-outlined text-[18px]">cloud_done</span>
-                        Answer saved
-                    </span>
-                    <button id="flagBtn" onclick="toggleFlag()" class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-full text-sm font-semibold hover:bg-surface-container transition-colors">
-                        <span class="material-symbols-outlined text-[20px]">flag</span>
-                        Flag for Review
-                    </button>
-                </div>
-            </div>
-
-            <form id="examForm" method="POST" action="{% url 'exam_submit' %}">
-                {% csrf_token %}
-                {% for q in all_questions %}
-                <div class="question-slide {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter0 }}">
-                    <div class="bg-surface-container-lowest rounded-xl shadow-sm p-8 lg:p-10 relative overflow-hidden mb-6 border border-slate-100">
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-primary-container"></div>
-                        <p class="text-lg font-medium leading-relaxed text-on-surface mb-8">{{ q.question_text }}</p>
-                        <div class="space-y-3">
-                            {% for opt in q.shuffled_options %}
-                            <label class="option-label group flex items-center p-4 rounded-xl border-2 border-surface-container cursor-pointer bg-surface-container-low hover:border-emerald-200 transition-all">
-                                <input type="radio" name="q_{{ q.id }}" value="{{ opt.id }}" class="w-5 h-5 text-primary focus:ring-primary" onchange="onAnswer({{ forloop.parentloop.counter0 }}, this)">
-                                <span class="ml-4 flex-1 text-on-surface font-medium">{{ opt.option_text }}</span>
-                            </label>
-                            {% endfor %}
-                        </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Question Grid</h3>
+                        <span id="savedCount" class="text-[10px] font-medium text-primary bg-emerald-50 px-2 py-0.5 rounded">0 / {{ total_questions }} Saved</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2" id="questionGrid">
+                        {% for q in all_questions %}
+                        <button id="gridBtn{{ forloop.counter0 }}" onclick="jumpToQuestion({{ forloop.counter0 }})"
+                            class="grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold bg-surface-container text-outline transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                            {{ forloop.counter }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-primary"></div><span class="text-[10px] text-slate-500">Answered</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full border-2 border-primary"></div><span class="text-[10px] text-slate-500">Current</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-secondary-container"></div><span class="text-[10px] text-slate-500">Flagged</span></div>
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            <div class="p-4 border-t border-slate-200">
+                <button onclick="openSubmitModal()" class="w-full flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary font-bold rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors text-sm">
+                    <span class="material-symbols-outlined text-lg">assignment_turned_in</span>
+                    Submit Exam
+                </button>
+            </div>
+        </aside>
 
-                <div class="flex items-center justify-between mt-4">
-                    <button type="button" onclick="prevQuestion()" class="flex items-center gap-2 px-8 py-4 bg-surface-container text-on-surface-variant font-bold rounded-lg hover:bg-surface-container-high transition-all">
-                        <span class="material-symbols-outlined">arrow_back</span>
-                        Previous
-                    </button>
-                    <button type="button" id="nextBtn" onclick="nextQuestion()" class="flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg hover:shadow-lg transition-all active:scale-95">
-                        <span id="nextBtnText">Next Question</span>
-                        <span id="nextBtnIcon" class="material-symbols-outlined">arrow_forward</span>
-                    </button>
+        <main class="ml-72 flex-1 p-8 lg:p-12">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <span id="currentSectionLabel" class="text-xs font-bold text-primary tracking-widest uppercase mb-1 block"></span>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-on-surface">
+                            Question <span id="currentQNum">1</span> of {{ total_questions }}
+                        </h1>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="saveIndicator" class="text-primary font-medium text-sm flex items-center gap-1 opacity-0 transition-opacity">
+                            <span class="material-symbols-outlined text-[18px]">cloud_done</span>
+                            Answer saved
+                        </span>
+                        <button id="flagBtn" onclick="toggleFlag()" class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface-variant rounded-full text-sm font-semibold hover:bg-surface-container transition-colors">
+                            <span class="material-symbols-outlined text-[20px]">flag</span>
+                            Flag for Review
+                        </button>
+                    </div>
                 </div>
-            </form>
-        </div>
-    </main>
-</div>
 
-<div id="submitModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary/20 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
-        <div class="p-8 text-center border-b border-surface-container">
-            <h3 class="text-2xl font-extrabold text-on-surface mb-1">Submit Your Exam?</h3>
-            <p class="text-on-surface-variant text-sm">Review your submission summary below.</p>
-        </div>
-        <div class="bg-surface-container-low p-8 grid grid-cols-3 gap-4 text-center">
-            <div><p class="text-[10px] font-bold text-primary uppercase">Answered</p><p id="modalAnswered" class="text-3xl font-black">0</p></div>
-            <div><p class="text-[10px] font-bold text-tertiary uppercase">Remaining</p><p id="modalUnanswered" class="text-3xl font-black">0</p></div>
-            <div><p class="text-[10px] font-bold text-secondary uppercase">Flagged</p><p id="modalFlagged" class="text-3xl font-black">0</p></div>
-        </div>
-        <div class="p-6 flex gap-3">
-            <button onclick="closeSubmitModal()" class="flex-1 py-4 text-on-surface font-bold bg-surface rounded-xl border">Review</button>
-            <button onclick="submitExam()" class="flex-1 py-4 text-white font-bold bg-primary rounded-xl shadow-lg">Confirm</button>
+                <form id="examForm" method="POST" action="{% url 'exam_submit' %}">
+                    {% csrf_token %}
+                    {% for q in all_questions %}
+                    <div class="question-slide {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter0 }}">
+                        <div class="bg-surface-container-lowest rounded-xl shadow-sm p-8 lg:p-10 relative overflow-hidden mb-6 border border-slate-100">
+                            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-primary-container"></div>
+                            <p class="text-lg font-medium leading-relaxed text-on-surface mb-8">{{ q.question_text }}</p>
+                            <div class="space-y-3">
+                                {% for opt in q.shuffled_options %}
+                                <label class="option-label group flex items-center p-4 rounded-xl border-2 border-surface-container cursor-pointer bg-surface-container-low hover:border-emerald-200 transition-all">
+                                    <input type="radio" name="q_{{ q.id }}" value="{{ opt.id }}" class="w-5 h-5 text-primary focus:ring-primary" onchange="onAnswer({{ forloop.parentloop.counter0 }}, this)">
+                                    <span class="ml-4 flex-1 text-on-surface font-medium">{{ opt.option_text }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="flex items-center justify-between mt-4">
+                        <button type="button" onclick="prevQuestion()" class="flex items-center gap-2 px-8 py-4 bg-surface-container text-on-surface-variant font-bold rounded-lg hover:bg-surface-container-high transition-all">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                            Previous
+                        </button>
+                        <button type="button" id="nextBtn" onclick="nextQuestion()" class="flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg hover:shadow-lg transition-all active:scale-95">
+                            <span id="nextBtnText">Next Question</span>
+                            <span id="nextBtnIcon" class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <div id="submitModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary/20 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-8 text-center border-b border-surface-container">
+                <h3 class="text-2xl font-extrabold text-on-surface mb-1">Submit Your Exam?</h3>
+                <p class="text-on-surface-variant text-sm">Review your submission summary below.</p>
+            </div>
+            <div class="bg-surface-container-low p-8 grid grid-cols-3 gap-4 text-center">
+                <div><p class="text-[10px] font-bold text-primary uppercase">Answered</p><p id="modalAnswered" class="text-3xl font-black">0</p></div>
+                <div><p class="text-[10px] font-bold text-tertiary uppercase">Remaining</p><p id="modalUnanswered" class="text-3xl font-black">0</p></div>
+                <div><p class="text-[10px] font-bold text-secondary uppercase">Flagged</p><p id="modalFlagged" class="text-3xl font-black">0</p></div>
+            </div>
+            <div class="p-6 flex gap-3">
+                <button onclick="closeSubmitModal()" class="flex-1 py-4 text-on-surface font-bold bg-surface rounded-xl border">Review</button>
+                <button onclick="submitExam()" class="flex-1 py-4 text-white font-bold bg-primary rounded-xl shadow-lg">Confirm</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="timeUpModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center">
-        <h3 class="text-2xl font-extrabold text-on-surface mb-2">Time's Up!</h3>
-        <p class="text-on-surface-variant text-sm">Submitting your exam automatically...</p>
+    <div id="securityModal" class="hidden fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center border-4 border-error/20">
+            <div class="w-20 h-20 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="material-symbols-outlined text-error text-5xl">warning</span>
+            </div>
+            <h3 class="text-2xl font-extrabold text-on-surface mb-2">Security Alert!</h3>
+            <p class="text-on-surface-variant text-base mb-6">
+                Switching tabs or applications is strictly prohibited. <br>
+                <span class="font-bold text-error">A penalty of {{ config.tab_switch_deduction }} minutes</span> has been deducted from your remaining time.
+            </p>
+            <button onclick="closeSecurityModal()" class="w-full py-4 text-white font-bold bg-primary rounded-xl shadow-lg hover:bg-primary-container transition-all">
+                I Understand and Will Continue
+            </button>
+        </div>
     </div>
-</div>
 
-<script>
-const TOTAL_QUESTIONS  = {{ total_questions }};
-const DURATION_SECONDS = {{ config.duration_minutes }} * 60;
-const SECTIONS         = {{ sections_json|safe }};
-const PENALTY_SECONDS  = {{ config.tab_switch_deduction }} * 60;
+    <div id="timeUpModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center">
+            <h3 class="text-2xl font-extrabold text-on-surface mb-2">Time's Up!</h3>
+            <p class="text-on-surface-variant text-sm">Submitting your exam automatically...</p>
+        </div>
+    </div>
 
-let currentIndex  = 0;
-let answers       = {};
-let flagged       = new Set();
-let timerSeconds  = DURATION_SECONDS;
-let timerInterval = null;
+    <script>
+        const TOTAL_QUESTIONS = {{ total_questions }};
+        const DURATION_SECONDS = {{ config.duration_minutes }} * 60;
+        const SECTIONS = {{ sections_json|safe }};
+        const PENALTY_SECONDS = {{ config.tab_switch_deduction }} * 60;
 
-document.addEventListener('DOMContentLoaded', () => {
-    goToQuestion(0);
-    startTimer();
-    setupSecurity();
-});
+        let currentIndex = 0;
+        let answers = {};
+        let flagged = new Set();
+        let timerSeconds = DURATION_SECONDS;
+        let timerInterval = null;
+        let isWarningActive = false;
 
-function startTimer() {
-    timerInterval = setInterval(() => {
-        timerSeconds--;
-        updateTimerDisplay();
-        if (timerSeconds <= 0) {
-            clearInterval(timerInterval);
-            autoSubmit();
+        document.addEventListener('DOMContentLoaded', () => {
+            goToQuestion(0);
+            startTimer();
+            setupSecurity();
+        });
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    autoSubmit();
+                }
+            }, 1000);
         }
-    }, 1000);
-}
 
-function updateTimerDisplay() {
-    const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-    const s = (timerSeconds % 60).toString().padStart(2, '0');
-    const el = document.getElementById('timerDisplay');
-    el.textContent = `${m}:${s}`;
-    if (timerSeconds < 300) el.classList.add('text-red-400');
-}
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            const el = document.getElementById('timerDisplay');
+            el.textContent = `${m}:${s}`;
+            if (timerSeconds < 300) el.classList.add('text-red-400');
+        }
 
-function setupSecurity() {
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
+        function setupSecurity() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    isWarningActive = true;
+                } else {
+                    if (isWarningActive) {
+                        applyPenalty();
+                        showSecurityModal();
+                    }
+                }
+            });
+        }
+
+        function applyPenalty() {
             timerSeconds -= PENALTY_SECONDS;
             if (timerSeconds < 0) timerSeconds = 0;
             updateTimerDisplay();
-        }
-    });
-}
 
-function goToQuestion(index) {
-    if (index < 0 || index >= TOTAL_QUESTIONS) return;
-
-    document.querySelectorAll('.question-slide').forEach(s => s.classList.remove('active'));
-    document.getElementById(`question${index}`).classList.add('active');
-
-    currentIndex = index;
-    document.getElementById('currentQNum').textContent = index + 1;
-
-    const section = SECTIONS.find(s => index >= s.start && index <= s.end);
-    if (section) {
-        document.getElementById('currentSectionLabel').textContent = section.name;
-        updateSectionNav(SECTIONS.indexOf(section));
-    }
-
-    updateFlagBtn();
-    updateGrid();
-
-    const nextBtnText = document.getElementById('nextBtnText');
-    const nextBtnIcon = document.getElementById('nextBtnIcon');
-
-    if (index === TOTAL_QUESTIONS - 1) {
-        nextBtnText.textContent = "Review & Submit";
-        nextBtnIcon.textContent = "done_all";
-    } else {
-        nextBtnText.textContent = "Next Question";
-        nextBtnIcon.textContent = "arrow_forward";
-    }
-}
-
-function onAnswer(qIndex, input) {
-    answers[qIndex] = input.value;
-    const slide = document.getElementById(`question${qIndex}`);
-    slide.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected', 'ring-2', 'ring-primary'));
-    input.closest('.option-label').classList.add('selected', 'ring-2', 'ring-primary');
-
-    const ind = document.getElementById('saveIndicator');
-    ind.style.opacity = '1';
-    setTimeout(() => ind.style.opacity = '0', 1500);
-    updateGrid();
-}
-
-function nextQuestion() {
-    if (currentIndex === TOTAL_QUESTIONS - 1) {
-        openSubmitModal();
-        return;
-    }
-
-    if (answers[currentIndex] !== undefined || flagged.has(currentIndex)) {
-        goToQuestion(currentIndex + 1);
-    } else {
-        const card = document.getElementById(`question${currentIndex}`).querySelector('.bg-surface-container-lowest');
-        card.classList.add('shake', 'border-error');
-        setTimeout(() => card.classList.remove('shake', 'border-error'), 400);
-    }
-}
-
-function prevQuestion() { goToQuestion(currentIndex - 1); }
-
-function jumpToQuestion(idx) {
-    if (idx <= currentIndex || answers[idx] !== undefined || (idx > 0 && (answers[idx-1] !== undefined || flagged.has(idx-1)))) {
-        goToQuestion(idx);
-    }
-}
-
-function jumpToSection(secIdx) {
-    const sec = SECTIONS[secIdx];
-    if (sec.start <= currentIndex || answers[sec.start] !== undefined || flagged.has(sec.start)) {
-        goToQuestion(sec.start);
-    }
-}
-
-function toggleFlag() {
-    let wasFlagged = flagged.has(currentIndex);
-
-    if (wasFlagged) {
-        flagged.delete(currentIndex);
-    } else {
-        flagged.add(currentIndex);
-    }
-
-    updateFlagBtn();
-    updateGrid();
-
-    // If we just added a flag, auto-move to the next question
-    if (!wasFlagged) {
-        // Short delay to let the user see the flag color change before moving
-        setTimeout(() => {
-            nextQuestion();
-        }, 200);
-    }
-}
-
-function updateFlagBtn() {
-    const btn = document.getElementById('flagBtn');
-    btn.classList.toggle('bg-secondary-container', flagged.has(currentIndex));
-}
-
-function updateGrid() {
-    for (let i = 0; i < TOTAL_QUESTIONS; i++) {
-        const btn = document.getElementById(`gridBtn${i}`);
-        btn.className = "grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold transition-all ";
-
-        if (i === currentIndex) {
-            btn.classList.add("ring-2", "ring-primary", "bg-white", "text-primary");
-        } else if (flagged.has(i)) {
-            btn.classList.add("bg-secondary-container", "text-on-secondary-container");
-        } else if (answers[i] !== undefined) {
-            btn.classList.add("bg-primary", "text-white");
-        } else {
-            btn.classList.add("bg-surface-container", "text-outline");
+            const timerEl = document.getElementById('timerDisplay');
+            timerEl.classList.add('timer-penalty');
+            setTimeout(() => {
+                timerEl.classList.remove('timer-penalty');
+            }, 1000);
         }
 
-        let canAccess = (i <= currentIndex) || (i > 0 && (answers[i-1] !== undefined || flagged.has(i-1)));
-        btn.disabled = !canAccess;
-    }
-    document.getElementById('savedCount').textContent = `${Object.keys(answers).length} / ${TOTAL_QUESTIONS} Saved`;
-}
+        function showSecurityModal() {
+            document.getElementById('securityModal').classList.remove('hidden');
+        }
 
-function updateSectionNav(activeIdx) {
-    document.querySelectorAll('.section-btn').forEach((btn, i) => {
-        btn.classList.toggle('bg-emerald-100', i === activeIdx);
-        btn.classList.toggle('text-primary', i === activeIdx);
-    });
-}
+        function closeSecurityModal() {
+            document.getElementById('securityModal').classList.add('hidden');
+            isWarningActive = false;
+        }
 
-function openSubmitModal() {
-    const ans = Object.keys(answers).length;
-    document.getElementById('modalAnswered').textContent = ans;
-    document.getElementById('modalUnanswered').textContent = TOTAL_QUESTIONS - ans;
-    document.getElementById('modalFlagged').textContent = flagged.size;
-    document.getElementById('submitModal').classList.remove('hidden');
-}
+        function goToQuestion(index) {
+            if (index < 0 || index >= TOTAL_QUESTIONS) return;
 
-function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
-function submitExam() { document.getElementById('examForm').submit(); }
-function autoSubmit() {
-    document.getElementById('timeUpModal').classList.remove('hidden');
-    setTimeout(() => submitExam(), 2000);
-}
-</script>
+            document.querySelectorAll('.question-slide').forEach(s => s.classList.remove('active'));
+            document.getElementById(`question${index}`).classList.add('active');
+
+            currentIndex = index;
+            document.getElementById('currentQNum').textContent = index + 1;
+
+            const section = SECTIONS.find(s => index >= s.start && index <= s.end);
+            if (section) {
+                document.getElementById('currentSectionLabel').textContent = section.name;
+                updateSectionNav(SECTIONS.indexOf(section));
+            }
+
+            updateFlagBtn();
+            updateGrid();
+
+            const nextBtnText = document.getElementById('nextBtnText');
+            const nextBtnIcon = document.getElementById('nextBtnIcon');
+
+            if (index === TOTAL_QUESTIONS - 1) {
+                nextBtnText.textContent = "Review & Submit";
+                nextBtnIcon.textContent = "done_all";
+            } else {
+                nextBtnText.textContent = "Next Question";
+                nextBtnIcon.textContent = "arrow_forward";
+            }
+        }
+
+        function onAnswer(qIndex, input) {
+            answers[qIndex] = input.value;
+            const slide = document.getElementById(`question${qIndex}`);
+            slide.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected', 'ring-2', 'ring-primary'));
+            input.closest('.option-label').classList.add('selected', 'ring-2', 'ring-primary');
+
+            const ind = document.getElementById('saveIndicator');
+            ind.style.opacity = '1';
+            setTimeout(() => ind.style.opacity = '0', 1500);
+            updateGrid();
+        }
+
+        function nextQuestion() {
+            if (currentIndex === TOTAL_QUESTIONS - 1) {
+                openSubmitModal();
+                return;
+            }
+
+            if (answers[currentIndex] !== undefined || flagged.has(currentIndex)) {
+                goToQuestion(currentIndex + 1);
+            } else {
+                const card = document.getElementById(`question${currentIndex}`).querySelector('.bg-surface-container-lowest');
+                card.classList.add('shake', 'border-error');
+                setTimeout(() => card.classList.remove('shake', 'border-error'), 400);
+            }
+        }
+
+        function prevQuestion() { goToQuestion(currentIndex - 1); }
+
+        function jumpToQuestion(idx) {
+            if (idx <= currentIndex || answers[idx] !== undefined || (idx > 0 && (answers[idx-1] !== undefined || flagged.has(idx-1)))) {
+                goToQuestion(idx);
+            }
+        }
+
+        function jumpToSection(secIdx) {
+            const sec = SECTIONS[secIdx];
+            if (sec.start <= currentIndex || answers[sec.start] !== undefined || flagged.has(sec.start)) {
+                goToQuestion(sec.start);
+            }
+        }
+
+        function toggleFlag() {
+            let wasFlagged = flagged.has(currentIndex);
+
+            if (wasFlagged) {
+                flagged.delete(currentIndex);
+            } else {
+                flagged.add(currentIndex);
+            }
+
+            updateFlagBtn();
+            updateGrid();
+
+            if (!wasFlagged) {
+                setTimeout(() => {
+                    nextQuestion();
+                }, 200);
+            }
+        }
+
+        function updateFlagBtn() {
+            const btn = document.getElementById('flagBtn');
+            btn.classList.toggle('bg-secondary-container', flagged.has(currentIndex));
+        }
+
+        function updateGrid() {
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+                const btn = document.getElementById(`gridBtn${i}`);
+                btn.className = "grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold transition-all ";
+
+                if (i === currentIndex) {
+                    btn.classList.add("ring-2", "ring-primary", "bg-white", "text-primary");
+                } else if (flagged.has(i)) {
+                    btn.classList.add("bg-secondary-container", "text-on-secondary-container");
+                } else if (answers[i] !== undefined) {
+                    btn.classList.add("bg-primary", "text-white");
+                } else {
+                    btn.classList.add("bg-surface-container", "text-outline");
+                }
+
+                let canAccess = (i <= currentIndex) || (i > 0 && (answers[i-1] !== undefined || flagged.has(i-1)));
+                btn.disabled = !canAccess;
+            }
+            document.getElementById('savedCount').textContent = `${Object.keys(answers).length} / ${TOTAL_QUESTIONS} Saved`;
+        }
+
+        function updateSectionNav(activeIdx) {
+            document.querySelectorAll('.section-btn').forEach((btn, i) => {
+                btn.classList.toggle('bg-emerald-100', i === activeIdx);
+                btn.classList.toggle('text-primary', i === activeIdx);
+            });
+        }
+
+        function openSubmitModal() {
+            const ans = Object.keys(answers).length;
+            document.getElementById('modalAnswered').textContent = ans;
+            document.getElementById('modalUnanswered').textContent = TOTAL_QUESTIONS - ans;
+            document.getElementById('modalFlagged').textContent = flagged.size;
+            document.getElementById('submitModal').classList.remove('hidden');
+        }
+
+        function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
+        function submitExam() { document.getElementById('examForm').submit(); }
+        function autoSubmit() {
+            document.getElementById('timeUpModal').classList.remove('hidden');
+            setTimeout(() => submitExam(), 2000);
+        }
+    </script>
 </body>
 </html>
