@@ -29,8 +29,22 @@
 </header>
 
 <div class="bg-surface-container-low p-4 rounded-xl mb-6 flex flex-wrap items-center gap-4 border border-outline-variant/10">
+    <div class="relative flex-1 max-w-md">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
+        <input type="text" placeholder="Search questions..." class="w-full pl-10 pr-4 py-2 bg-white border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-sm">
     </div>
 
+    <select id="categoryFilter" onchange="filterByCategory()" class="bg-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary shadow-sm">
+        <option value="all">All Categories</option>
+        {% for cat in categories %}
+            <option value="{{ cat.name }}">{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="ml-auto text-xs font-bold text-outline uppercase tracking-widest">
+        Total: {{ questions.count }} Questions
+    </div>
+</div>
 <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
     <table class="w-full text-left border-collapse">
         <thead>
@@ -45,7 +59,7 @@
         </thead>
         <tbody class="divide-y divide-surface-container">
             {% for q in questions %}
-            <tr class="hover:bg-surface-container-low transition-colors group">
+            <tr class="question-row hover:bg-surface-container-low transition-colors group" data-category="{{ q.category.name }}">
                 <td class="px-6 py-4 text-xs font-mono font-bold text-primary">{{ q.custom_id }}</td>
                 <td class="px-6 py-4 text-sm text-on-surface truncate max-w-xs">{{ q.question_text }}</td>
                 <td class="px-6 py-4">
@@ -168,7 +182,7 @@
         const modal = document.getElementById(modalId);
         if (show) {
             modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Stop page scroll when modal is open
+            document.body.style.overflow = 'hidden';
         } else {
             modal.classList.add('hidden');
             document.body.style.overflow = 'auto';
@@ -178,7 +192,6 @@
     function switchLayout(selectedType) {
         const mcq = document.getElementById('mcqLayout');
         const tf = document.getElementById('tfLayout');
-
         if (selectedType === 'MCQ') {
             mcq.classList.remove('hidden');
             tf.classList.add('hidden');
@@ -186,6 +199,22 @@
             mcq.classList.add('hidden');
             tf.classList.remove('hidden');
         }
+    }
+
+    // This handles BOTH category filtering and search typing
+    function filterByCategory() {
+        const selectedCategory = document.getElementById('categoryFilter').value;
+        const rows = document.querySelectorAll('.question-row');
+
+        rows.forEach(row => {
+            const rowCategory = row.getAttribute('data-category');
+
+            if (selectedCategory === "all" || rowCategory === selectedCategory) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
     }
 </script>
 {% endblock %}
