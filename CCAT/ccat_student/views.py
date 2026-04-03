@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from ccat_admin.models import Student
-
-def login_view(request):
-    return render(request, 'ccat_student/login.html')
+from django.contrib.auth.decorators import login_required
+from ccat_admin.models import Student, SessionKey
 
 def signup_step1(request):
     if request.method == 'POST':
@@ -48,26 +47,97 @@ def signup_step3(request):
         return redirect('signup_step4')
     return render(request, 'ccat_student/signup_step3.html', {'form_data': request.session.get('signup_data', {})})
 
+
 def signup_step4(request):
     data = request.session.get('signup_data', {})
+
     if request.method == 'POST':
-        p1, p2, p3 = request.POST.get('first_priority'), request.POST.get('second_priority'), request.POST.get('third_priority')
+        p1 = request.POST.get('first_priority')
+        p2 = request.POST.get('second_priority')
+        p3 = request.POST.get('third_priority')
 
         if not all([p1, p2, p3]) or len({p1, p2, p3}) < 3:
-            return render(request, 'ccat_student/signup_step4.html', {'error': 'Please select three unique priorities.'})
+            return render(request, 'ccat_student/signup_step4.html',
+                          {'error': 'Please select three unique priorities.'})
 
         username = data.get('lrn_number')
-        if not username: return redirect('signup_step1')
+        if not username:
+            return redirect('signup_step1')
 
         try:
+            # CHANGE: Set password to 'username' (the LRN).
+            # This allows the student to have an account, but they still
+            # can't enter the exam without the Admin's SessionKey.
             user = User.objects.create_user(username=username, password=username)
+
             Student.objects.create(
-                user=user, **data,
-                first_priority=p1, second_priority=p2, third_priority=p3
+                user=user,
+                **data,
+                first_priority=p1,
+                second_priority=p2,
+                third_priority=p3
             )
+
             del request.session['signup_data']
+
+            # No need to show 'access_key' here since the Admin provides it later.
             return render(request, 'ccat_student/success.html', {'lrn': username})
+
         except Exception as e:
             if 'user' in locals(): user.delete()
             return render(request, 'ccat_student/signup_step4.html', {'error': str(e)})
+
     return render(request, 'ccat_student/signup_step4.html')
+
+
+def login_view(request):
+    if request.method == 'POST':
+        lrn = request.POST.get('username')
+        provided_key = request.POST.get('password')
+
+        # 1. Authenticate the student account
+        user = authenticate(request, username=lrn, password=lrn)
+
+        if user is not None:
+            try:
+                # 2. Get the key from the database using actual fields
+                session_key = SessionKey.objects.get(key_code=provided_key, is_active=True)
+
+                # 3. Use your model's logic to check expiry and capacity
+                if session_key.is_valid():
+                    login(request, user)
+
+                    # Optional: Increment the used_count since a student just logged in
+                    session_key.used_count += 1
+                    session_key.save()
+
+                    return redirect('exam_instructions')
+                else:
+                    # Specific error based on why it's invalid
+                    messages.error(request, f"Access Key is {session_key.status}.")
+
+            except SessionKey.DoesNotExist:
+                messages.error(request, "Invalid or Inactive Session Access Key.")
+        else:
+            messages.error(request, "Invalid LRN. Please check your registration.")
+
+    return render(request, 'ccat_student/login.html')
+
+
+@login_required
+def exam_instructions(request):
+    # Fetch the student profile linked to the logged-in user
+    student = Student.objects.get(user=request.user)
+
+    # Mock data for demonstration (Replace these with actual queries to your ExamConfig models)
+    # Example: config = ExamConfiguration.objects.first()
+    context = {
+        'student': student,
+        'total_questions': 50,  # Replace with actual count
+        'total_sections': 4,  # Replace with actual count
+        'config': {
+            'duration_minutes': 60,
+            'tab_switch_deduction': 5,
+        }
+    }
+    return render(request, 'ccat_student/exam_instructions.html', context)
