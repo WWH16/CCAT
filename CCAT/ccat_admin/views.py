@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Student, ExamResult, Question, Category, Option
+from .models import Student, ExamResult, Question, Category, Option, ExamConfig
 import csv
 from django.utils import timezone
 from django.http import HttpResponse
@@ -89,7 +89,17 @@ def question_management(request):
 
 @login_required(login_url='admin_login')
 def exam_settings(request):
-    return render(request, 'ccat_admin/exam_settings.html')
+    config = ExamConfig.get_config()
+
+    if request.method == 'POST':
+        config.duration_minutes = int(request.POST.get('duration_minutes', 120))
+        config.randomize_questions = 'randomize_questions' in request.POST
+        config.randomize_choices = 'randomize_choices' in request.POST
+        config.tab_switch_deduction = int(request.POST.get('tab_switch_deduction', 10))
+        config.save()
+        return redirect('exam_settings')
+
+    return render(request, 'ccat_admin/exam_settings.html', {'config': config})
 
 @login_required(login_url='admin_login')
 def export_questions(request):

@@ -62,3 +62,22 @@ class ExamResult(models.Model):
     score_percentage = models.DecimalField(max_digits=5, decimal_places=2)
     status = models.CharField(max_length=20) # Pass, Fail, In Progress
     date_taken = models.DateTimeField(auto_now_add=True)
+
+
+class ExamConfig(models.Model):
+    duration_minutes = models.PositiveIntegerField(default=120)
+    randomize_questions = models.BooleanField(default=True)
+    randomize_choices = models.BooleanField(default=True)
+    tab_switch_deduction = models.PositiveIntegerField(default=10)
+
+    class Meta:
+        verbose_name = "Exam Configuration"
+
+    def __str__(self):
+        return f"Exam Config (duration={self.duration_minutes}m)"
+
+    @classmethod
+    def get_config(cls):
+        """Always returns the single config row, creating it if it doesn't exist."""
+        config, _ = cls.objects.get_or_create(pk=1)
+        return config
