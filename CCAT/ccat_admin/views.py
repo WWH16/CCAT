@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import Student, ExamResult, Question, Category, Option
+import csv
+from django.utils import timezone
+from django.http import HttpResponse
 
 
 # --- Authentication Views ---
@@ -87,3 +90,51 @@ def question_management(request):
 @login_required(login_url='admin_login')
 def exam_settings(request):
     return render(request, 'ccat_admin/exam_settings.html')
+
+@login_required(login_url='admin_login')
+def export_questions(request):
+    # Get current date in our region (UTC+8)
+    # Using 'Asia/Singapore' is the reliable standard for PH time
+    now = timezone.now().astimezone(timezone.get_current_timezone())
+
+    # Clean Filename: ISU_Palanan_Questions_Apr-03-2026.csv
+    date_str = now.strftime("%b-%d-%Y")
+    filename = f"ISU_Palanan_Questions_{date_str}.csv"
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+
+    # Official Header Section
+    writer.writerow(['ISU PALANAN ADMISSION SYSTEM - QUESTION REPOSITORY'])
+    writer.writerow(['Export Date:', now.strftime("%B %d, %Y")])
+    writer.writerow([])  # Spacer
+
+    # Table Headers
+    writer.writerow(['ID', 'Question Text', 'Category', 'Type', 'Correct Answer', 'Date Created'])
+
+    # Fetch data efficiently
+    questions = Question.objects.select_related('category').prefetch_related('options').all().order_by('-created_at')
+
+    for q in questions:
+        # Get the correct answer
+        correct_opt = q.options.filter(is_correct=True).first()
+        answer_text = correct_opt.option_text if correct_opt else "N/A"
+
+        # Clean text for CSV stability
+        clean_text = q.question_text.replace('\n', ' ').replace('\r', '').strip()
+
+        # Format the creation date of the question
+        date_created = q.created_at.astimezone(timezone.get_current_timezone()).strftime("%m/%d/%Y")
+
+        writer.writerow([
+            q.custom_id,
+            clean_text,
+            q.category.name,
+            q.get_question_type_display(),
+            answer_text,
+            date_created
+        ])
+
+    return response

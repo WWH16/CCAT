@@ -17,10 +17,10 @@
         <p class="text-on-surface-variant max-w-2xl mt-2">Manage, categorize, and validate the Palanan Extension Campus comprehensive database of admission test queries.</p>
     </div>
     <div class="flex items-center gap-3">
-        <button class="px-6 py-2.5 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/5 transition-colors flex items-center gap-2 text-sm">
-            <span class="material-symbols-outlined text-lg">download</span>
-            Export Questions
-        </button>
+<a href="{% url 'export_questions' %}" class="px-6 py-2.5 rounded-lg border-2 border-primary text-primary font-semibold hover:bg-primary/5 transition-colors flex items-center gap-2 text-sm">
+    <span class="material-symbols-outlined text-lg">download</span>
+    Export Questions
+</a>
         <button onclick="toggleModal('questionModal', true)" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-container text-white font-semibold shadow-lg hover:shadow-xl hover:opacity-95 transition-all flex items-center gap-2 text-sm">
             <span class="material-symbols-outlined text-lg">add</span>
             Add New Question
