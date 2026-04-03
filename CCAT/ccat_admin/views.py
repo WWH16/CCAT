@@ -33,15 +33,22 @@ def admin_logout(request):
 # --- Protected Admin Views ---
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
+    # Fetch the session that is marked active and has an expiry date in the future
+    active_session = SessionKey.objects.filter(
+        is_active=True,
+        expiry_date__gt=timezone.now()
+    ).first()
+
     context = {
         'total_students': Student.objects.count(),
         'total_questions': Question.objects.count(),
         'passed_count': ExamResult.objects.filter(status='Pass').count(),
         'failed_count': ExamResult.objects.filter(status='Fail').count(),
         'recent_results': ExamResult.objects.select_related('student').order_by('-date_taken')[:5],
+        # Add this line to the context
+        'active_session': active_session,
     }
     return render(request, 'ccat_admin/admin_dashboard.html', context)
-
 
 @login_required(login_url='admin_login')
 def question_management(request):
