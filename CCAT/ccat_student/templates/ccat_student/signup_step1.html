@@ -1,7 +1,7 @@
 {% extends 'ccat_student/base.html' %}
 {% load static %}
 
-{% block title %}Student Registration | ISU Palanan{% endblock %}
+{% block title %}Step 1: Personal Information | ISU Palanan{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,7 +10,7 @@
         background-repeat: no-repeat;
         background-position: center;
         background-size: 40%;
-        opacity: 0.03; /* Slightly lower opacity for less distraction */
+        opacity: 0.03;
     }
 </style>
 {% endblock %}
@@ -19,73 +19,104 @@
 <div class="fixed inset-0 watermark-bg pointer-events-none z-0"></div>
 
 <main class="relative z-10 max-w-4xl mx-auto px-4 py-12">
+
     <div class="mb-12 text-center">
-        <p class="text-primary font-bold tracking-[0.2em] uppercase text-[11px] mb-3">Academic Year 2024-2025</p>
-        <h1 class="text-4xl font-extrabold text-on-background tracking-tight mb-4 headline-lg">Isabela State University - Palanan Extension Campus</h1>
-        <p class="text-on-surface-variant max-w-xl mx-auto body-md leading-relaxed">Please complete the multi-step admission form below with accurate information.</p>
+        <p class="text-primary font-bold tracking-[0.2em] uppercase text-[11px] mb-3">Academic Year 2025-2026</p>
+        <h1 class="text-4xl font-extrabold text-on-background tracking-tight mb-4">Isabela State University</h1>
+        <p class="text-on-surface-variant max-w-xl mx-auto leading-relaxed text-sm">Complete the multi-step admission form below with accurate information.</p>
     </div>
 
-    <div class="bg-white rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden">
 
+        <!-- Stepper -->
         <div class="bg-slate-50 px-8 py-6 border-b border-slate-100">
             <div class="flex items-center justify-between relative">
-                <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 z-0"></div>
-                <div class="absolute top-1/2 left-0 w-1/4 h-1 bg-primary -translate-y-1/2 z-0"></div>
+                <div class="absolute top-5 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 z-0"></div>
+                <!-- Step 1 active: fill 0% of progress (no completed steps yet) -->
+                <div class="absolute top-5 left-0 w-0 h-1 bg-primary -translate-y-1/2 z-0"></div>
 
+                <!-- Step 1: Active -->
                 <div class="relative z-10 flex flex-col items-center gap-2">
                     <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-lg ring-4 ring-white text-sm">1</div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-primary text-center">Personal</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-primary">Personal</span>
                 </div>
-                <div class="relative z-10 flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold ring-4 ring-white text-sm">2</div><span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Contact</span></div>
-                <div class="relative z-10 flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold ring-4 ring-white text-sm">3</div><span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Academic</span></div>
-                <div class="relative z-10 flex flex-col items-center gap-2"><div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold ring-4 ring-white text-sm">4</div><span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center">Course</span></div>
+                <!-- Step 2: Inactive -->
+                <div class="relative z-10 flex flex-col items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold ring-4 ring-white text-sm">2</div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Contact</span>
+                </div>
+                <!-- Step 3: Inactive -->
+                <div class="relative z-10 flex flex-col items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold ring-4 ring-white text-sm">3</div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Academic</span>
+                </div>
+                <!-- Step 4: Inactive -->
+                <div class="relative z-10 flex flex-col items-center gap-2">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold ring-4 ring-white text-sm">4</div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Course</span>
+                </div>
             </div>
         </div>
 
         <div class="p-10 bg-white">
-            <form class="space-y-8" method="POST">
+            {% if error %}
+            <div class="mb-6 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm font-semibold border border-red-200">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'signup_step1' %}">
                 {% csrf_token %}
-                <section>
-                    <div class="flex items-center gap-2 mb-8">
-                        <span class="material-symbols-outlined text-primary text-3xl">person</span>
-                        <h2 class="text-xl font-bold tracking-tight text-slate-800">Step 1: Personal Information</h2>
-                    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-                        <div class="md:col-span-2 space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">First Name</label>
-                            <input name="first_name" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900 transition-all" placeholder="e.g. Maria" type="text"/>
-                        </div>
-                        <div class="md:col-span-2 space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">Last Name</label>
-                            <input name="last_name" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900 transition-all" placeholder="e.g. Santos" type="text"/>
-                        </div>
-                        <div class="md:col-span-1 space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">M.I.</label>
-                            <input name="middle_initial" maxlength="2" class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900 text-center" placeholder="D." type="text"/>
-                        </div>
-                    </div>
+                <div class="flex items-center gap-2 mb-8">
+                    <span class="material-symbols-outlined text-primary text-3xl">person</span>
+                    <h2 class="text-xl font-bold tracking-tight text-slate-800">Step 1: Personal Information</h2>
+                </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">Date of Birth</label>
-                            <input name="dob" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900" type="date"/>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">Gender</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label class="flex items-center justify-center gap-2 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                                    <input class="text-primary focus:ring-0" name="gender" value="male" type="radio" required/>
-                                    <span class="text-sm font-semibold text-slate-700">Male</span>
-                                </label>
-                                <label class="flex items-center justify-center gap-2 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                                    <input class="text-primary focus:ring-0" name="gender" value="female" type="radio"/>
-                                    <span class="text-sm font-semibold text-slate-700">Female</span>
-                                </label>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">First Name</label>
+                        <input name="first_name" required value="{{ form_data.first_name|default:'' }}"
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900 transition-all"
+                               placeholder="e.g. Maria" type="text"/>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">Last Name</label>
+                        <input name="last_name" required value="{{ form_data.last_name|default:'' }}"
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900 transition-all"
+                               placeholder="e.g. Santos" type="text"/>
+                    </div>
+                    <div class="md:col-span-1 space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">M.I.</label>
+                        <input name="middle_initial" maxlength="2" value="{{ form_data.middle_initial|default:'' }}"
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900 text-center"
+                               placeholder="D." type="text"/>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">Date of Birth</label>
+                        <input name="date_of_birth" required value="{{ form_data.date_of_birth|default:'' }}"
+                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-4 text-slate-900"
+                               type="date"/>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">Gender</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center justify-center gap-2 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
+                                <input class="text-primary focus:ring-0" name="gender" value="M" type="radio"
+                                       {% if form_data.gender == 'M' %}checked{% endif %} required/>
+                                <span class="text-sm font-semibold text-slate-700">Male</span>
+                            </label>
+                            <label class="flex items-center justify-center gap-2 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
+                                <input class="text-primary focus:ring-0" name="gender" value="F" type="radio"
+                                       {% if form_data.gender == 'F' %}checked{% endif %}/>
+                                <span class="text-sm font-semibold text-slate-700">Female</span>
+                            </label>
                         </div>
                     </div>
-                </section>
+                </div>
 
                 <div class="pt-8 mt-10 border-t border-slate-100 flex justify-between items-center">
                     <button class="px-6 py-3 rounded-xl font-bold text-slate-400 cursor-not-allowed flex items-center gap-2" type="button" disabled>
