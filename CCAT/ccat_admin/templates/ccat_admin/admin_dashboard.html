@@ -126,12 +126,12 @@
                     <td class="py-4 px-2">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
-                                {{ result.student.full_name|slice:":2"|upper }}
+                                {{ result.student.first_name|slice:":1"|upper }}{{ result.student.last_name|slice:":1"|upper }}
                             </div>
-                            <span class="text-sm font-semibold text-on-surface">{{ result.student.full_name }}</span>
+                            <span class="text-sm font-semibold text-on-surface">{{ result.student.first_name }} {{ result.student.last_name }}</span>
                         </div>
                     </td>
-                    <td class="py-4 px-2 text-sm text-outline font-mono">{{ result.student.student_id }}</td>
+                    <td class="py-4 px-2 text-sm text-outline font-mono">{{ result.student.lrn_number }}</td>
                     <td class="py-4 px-2 text-sm font-bold text-on-surface">{{ result.score_percentage }}%</td>
                     <td class="py-4 px-2">
                         {% if result.status == 'Pass' %}
