@@ -3,7 +3,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from ccat_admin.models import Student, SessionKey
+
+from ccat_admin.models import Question, Category, Student, SessionKey, ExamConfig
+
 
 def signup_step1(request):
     if request.method == 'POST':
@@ -126,18 +128,28 @@ def login_view(request):
 
 @login_required
 def exam_instructions(request):
-    # Fetch the student profile linked to the logged-in user
-    student = Student.objects.get(user=request.user)
+    # 1. Get the student profile
+    student = request.user.student_profile
 
-    # Mock data for demonstration (Replace these with actual queries to your ExamConfig models)
-    # Example: config = ExamConfiguration.objects.first()
+    # 2. Get the global exam configuration
+    config = ExamConfig.get_config()
+
+    # 3. Get real counts from the database
+    # Only count questions that have been validated by admins
+    total_questions = Question.objects.filter(is_validated=True).count()
+    total_sections = Category.objects.count()
+
+    # 4. (Optional) Get the name of the active session
+    # We check for an active key; if you want the specific one they used to log in,
+    # you'd ideally store that in the session during login_view.
+    active_session = SessionKey.objects.filter(is_active=True).first()
+    session_name = active_session.session_name if active_session else "General Admission"
+
     context = {
         'student': student,
-        'total_questions': 50,  # Replace with actual count
-        'total_sections': 4,  # Replace with actual count
-        'config': {
-            'duration_minutes': 60,
-            'tab_switch_deduction': 5,
-        }
+        'config': config,
+        'total_questions': total_questions,
+        'total_sections': total_sections,
+        'session_name': session_name,
     }
     return render(request, 'ccat_student/exam_instructions.html', context)

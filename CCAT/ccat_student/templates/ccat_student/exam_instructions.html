@@ -3,18 +3,6 @@
 
 {% block title %}Exam Instructions | ISU Palanan Admission{% endblock %}
 
-{% block extra_css %}
-<style>
-    .watermark-bg {
-        background-image: url("{% static 'images/isu_logo.jpg' %}");
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 45%;
-        opacity: 0.03;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <main class="relative z-10 flex-1 flex flex-col items-center justify-center py-12 px-4">
     <div class="w-full max-w-4xl space-y-8">
@@ -31,7 +19,7 @@
                 <div class="space-y-6">
                     <div>
                         <span class="text-[10px] uppercase tracking-widest text-outline font-bold">Session</span>
-                        <h2 class="text-2xl font-bold text-on-surface mt-1">Undergraduate Entrance 2026</h2>
+                        <h2 class="text-2xl font-bold text-on-surface mt-1">{{ session_name }}</h2>
                     </div>
                     <div class="grid grid-cols-3 gap-4">
                         <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center text-center">
@@ -102,7 +90,7 @@
                     <input id="agreement" type="checkbox" required
                            class="w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer"/>
                     <label for="agreement" class="text-sm font-medium text-on-surface-variant cursor-pointer">
-                        I have read the instructions and agree to the code of conduct.
+                        I, <b>{{ student.first_name }} {{ student.last_name }}</b>, have read the instructions and agree to the code of conduct.
                     </label>
                 </div>
 
