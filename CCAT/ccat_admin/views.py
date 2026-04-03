@@ -184,3 +184,7 @@ def delete_question(request, question_id):
     if request.method == 'POST':
         question.delete()
     return redirect('question_management')
+
+def access_keys(request):
+    # Placeholder for access key management
+    return render(request, 'ccat_admin/access_keys.html')

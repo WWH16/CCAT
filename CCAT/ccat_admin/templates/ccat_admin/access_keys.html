@@ -1,0 +1,136 @@
+{% extends 'ccat_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Access Key Management | ISU Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    .tonal-depth-shift {
+        background: linear-gradient(180deg, rgba(248, 249, 250, 0) 0%, rgba(243, 244, 245, 1) 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-10">
+    <h3 class="text-3xl font-extrabold text-on-surface tracking-tight -mb-1">Generate New Session Key</h3>
+    <p class="text-on-surface-variant opacity-80 text-sm">Provision secure temporary credentials for upcoming admission examinations.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+    <div class="lg:col-span-7 bg-white rounded-xl p-8 shadow-sm ring-1 ring-emerald-900/5 flex flex-col justify-between border border-slate-100">
+        <form method="POST" action="#">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold tracking-widest text-slate-500 uppercase px-1">Session Name</label>
+                        <input name="session_name" class="w-full bg-slate-50 border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" placeholder="e.g. ISU Palanan Entrance 2026" type="text" required />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold tracking-widest text-slate-500 uppercase px-1">Expiry Date</label>
+                        <input name="expiry_date" class="w-full bg-slate-50 border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" type="date" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-6 p-4 bg-primary/5 border-l-4 border-primary rounded-r-lg flex gap-3 items-start">
+                <span class="material-symbols-outlined text-primary">info</span>
+                <div>
+                    <p class="text-sm font-semibold text-emerald-900">Policy Notice</p>
+                    <p class="text-xs text-emerald-800/80">Generating a new key for the same course will automatically expire the current one.</p>
+                </div>
+            </div>
+
+            <button type="button" class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2" onclick="document.getElementById('confirmation-modal').classList.remove('hidden')">
+                <span class="material-symbols-outlined">vpn_key</span> Generate Key
+            </button>
+        </form>
+    </div>
+
+    <div class="lg:col-span-5 flex flex-col gap-4">
+        <div class="flex-1 bg-primary-container rounded-xl p-8 text-white relative overflow-hidden group">
+            <div class="relative z-10">
+                <span class="material-symbols-outlined text-4xl mb-4 opacity-80">verified_user</span>
+                <h4 class="text-xl font-bold mb-2">Encryption Standards</h4>
+                <p class="text-sm opacity-90 leading-relaxed">All generated keys utilize secure formatting and are automatically invalidated upon expiry. Store the master key securely.</p>
+            </div>
+            <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                <span class="material-symbols-outlined text-[160px]">shield</span>
+            </div>
+        </div>
+        <div class="bg-amber-50 rounded-xl p-6 border border-amber-100 flex items-center gap-4">
+            <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-700">
+                <span class="material-symbols-outlined">warning</span>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-amber-800 uppercase tracking-tight">Security Alert</p>
+                <p class="text-sm text-amber-700 font-medium">No active keys detected.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section>
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-2xl font-bold text-on-surface tracking-tight">Active Session Keys</h3>
+    </div>
+    <div class="bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50">
+                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Session Name</th>
+                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Access Key</th>
+                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
+                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for key in session_keys %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="font-semibold text-slate-800">{{ key.name }}</p>
+                        <p class="text-[10px] text-slate-500">Capacity: {{ key.capacity }} Students</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2 font-mono text-sm bg-slate-100 rounded px-2 py-1 w-fit">
+                            <span>{{ key.code }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {% if key.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {{ key.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="p-1.5 rounded hover:bg-red-50 text-red-600 transition-colors" title="Revoke"><span class="material-symbols-outlined text-lg">block</span></button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-slate-400 text-sm">No active session keys found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div id="confirmation-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-100">
+        <div class="flex items-center gap-4 mb-4 text-red-600">
+            <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined">warning</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">Confirm Generation</h3>
+        </div>
+        <p class="text-slate-600 text-sm mb-8 leading-relaxed">
+            Generating a new key will invalidate the current active session key for this category. Do you want to proceed?
+        </p>
+        <div class="flex gap-3 justify-end">
+            <button class="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors" onclick="document.getElementById('confirmation-modal').classList.add('hidden')">Cancel</button>
+            <button type="submit" form="generateForm" class="px-6 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:shadow-lg transition-all">Yes, Proceed</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

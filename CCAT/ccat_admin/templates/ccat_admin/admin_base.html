@@ -121,6 +121,16 @@
             <span class="material-symbols-outlined">settings_applications</span>
             <span class="font-medium text-sm">Exam Settings</span>
         </a>
+        <a href="{% url 'access_keys' %}"
+   class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+   {% if request.resolver_match.url_name == 'access_keys' %}
+   bg-white dark:bg-slate-800 text-[#004d27] dark:text-emerald-400 shadow-sm
+   {% else %}
+   text-slate-600 dark:text-slate-400 hover:bg-[#f3f4f5] dark:hover:bg-slate-800/50
+   {% endif %}">
+    <span class="material-symbols-outlined" style="{% if request.resolver_match.url_name == 'access_keys' %}font-variation-settings: 'FILL' 1;{% endif %}">key</span>
+    <span class="font-medium text-sm">Access Keys</span>
+</a>
     </nav>
 
     <div class="px-2 pt-4 border-t border-outline-variant/20">
