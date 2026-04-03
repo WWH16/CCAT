@@ -7,7 +7,6 @@
     <title>{% block title %}ISU Palanan | Admission Portal{% endblock %}</title>
 
     <script src="{% static 'js/tailwind.min.js' %}"></script>
-
     <link href="{% static 'css/font.css' %}" rel="stylesheet" />
     <link href="{% static 'css/material-symbols.css' %}" rel="stylesheet" />
 
@@ -19,12 +18,11 @@
                     colors: {
                         "primary": "#004d27",
                         "primary-container": "#006837",
-                        "secondary-container": "#fdd000",
                         "on-background": "#191c1d",
                         "on-surface": "#191c1d",
                         "on-surface-variant": "#3f4940",
                         "surface-container-low": "#f3f4f5",
-                        "surface-container-high": "#e7e8e9",
+                        "surface-container-lowest": "#ffffff",
                         "outline": "#6f7a70",
                     }
                 }
@@ -34,27 +32,28 @@
     <style>
         body { font-family: "Inter", sans-serif }
         .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24 }
-        .academic-gradient { background: linear-gradient(135deg, #004d27 0%, #006837 100%) }
 
-        /* Updated to use local logo for watermark */
+        /* The Repeating Logo BG you like */
         .pattern-bg {
             background-image: url("{% static 'images/isu_logo.jpg' %}");
             background-repeat: repeat;
             background-size: 180px;
-            opacity: 0.03; /* Lowered opacity for a cleaner look */
+            opacity: 0.03;
         }
 
+        /* The Mesh Gradient you like */
         .hero-mesh {
             background-color: #f1f8f4;
-            background-image: radial-gradient(at 0% 0%, hsla(145, 100%, 95%, 1) 0, transparent 50%), radial-gradient(at 100% 100%, hsla(145, 100%, 92%, 1) 0, transparent 50%)
+            background-image: radial-gradient(at 0% 0%, hsla(145, 100%, 95%, 1) 0, transparent 50%),
+                              radial-gradient(at 100% 100%, hsla(145, 100%, 92%, 1) 0, transparent 50%);
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-surface text-on-surface min-h-screen flex flex-col relative hero-mesh">
+<body class="min-h-screen flex flex-col relative hero-mesh">
     <div class="absolute inset-0 pattern-bg pointer-events-none z-0"></div>
 
-    <header class="relative z-50 bg-white/80 backdrop-blur-md border-b border-emerald-900/5">
+    <header class="relative z-50 bg-white border-b border-emerald-900/10 shadow-sm">
         <div class="flex justify-between items-center px-6 md:px-12 py-5 w-full max-w-7xl mx-auto">
             <div class="flex items-center gap-4">
                 <img alt="University Logo" class="h-12 w-12 object-contain" src="{% static 'images/isu_logo.jpg' %}"/>
@@ -70,9 +69,11 @@
         </div>
     </header>
 
-    {% block content %}{% endblock %}
+    <div class="relative z-10 flex-grow flex flex-col">
+        {% block content %}{% endblock %}
+    </div>
 
-    <footer class="py-12 px-8 bg-surface-container-high/50 relative z-10 border-t border-emerald-900/5">
+    <footer class="py-12 px-8 bg-white border-t border-emerald-900/5 relative z-10">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="flex items-center gap-4 opacity-70 grayscale">
                 <img alt="University Logo" class="w-12 h-12 object-contain" src="{% static 'images/isu_logo.jpg' %}"/>
@@ -84,7 +85,6 @@
             <div class="flex gap-8">
                 <a class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
                 <a class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Portal Terms</a>
-                <a class="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">System Status</a>
             </div>
         </div>
         <p class="text-center mt-8 text-[10px] text-outline tracking-wider font-medium">© 2026 Isabela State University - Palanan Extension Campus. All Rights Reserved.</p>
