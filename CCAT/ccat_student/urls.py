@@ -11,4 +11,5 @@ urlpatterns = [
     path('exam/start/', views.exam_start, name='exam_start'),
     path('exam/submit/', views.exam_start, name='exam_submit'),  # POST goes here
     path('exam/result/', views.exam_result, name='exam_result'),
+    path('logout/', views.logout_view, name='logout'),
 ]

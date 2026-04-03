@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 import json
 import random
 from django.utils import timezone
+from django.contrib.auth import logout
 
 from ccat_admin.models import Question, Category, Student, SessionKey, ExamConfig, Option, ExamResult
 
@@ -183,32 +184,35 @@ def get_icon(category_name):
     return CATEGORY_ICONS.get(category_name.lower(), 'quiz')
 
 
-@login_required(login_url='student_login')
+@login_required(login_url='login_view')  # Changed from student_login
 def exam_start(request):
-    """
-    GET  — render the exam page with all questions loaded.
-    POST — score answers and save ExamResult.
-    """
     student = get_student(request)
     if not student:
-        return redirect('student_login')
+        return redirect('login_view')
 
     config = ExamConfig.get_config()
 
-    # ── POST: Score the submitted exam ──────────────────────────────────────
     if request.method == 'POST':
-        questions = Question.objects.prefetch_related('options').all()
+        # --- SCORING LOGIC ---
+        questions = Question.objects.prefetch_related('options', 'category').all()
         total = questions.count()
         correct = 0
+        breakdown = {}
 
         for q in questions:
+            cat_name = q.category.name
+            if cat_name not in breakdown:
+                breakdown[cat_name] = {'correct': 0, 'total': 0}
+            breakdown[cat_name]['total'] += 1
+
             submitted_option_id = request.POST.get(f'q_{q.id}')
             if submitted_option_id:
                 try:
                     opt = Option.objects.get(id=submitted_option_id, question=q)
                     if opt.is_correct:
                         correct += 1
-                except Option.DoesNotExist:
+                        breakdown[cat_name]['correct'] += 1
+                except:
                     pass
 
         score_pct = round((correct / total) * 100, 2) if total > 0 else 0
@@ -218,66 +222,66 @@ def exam_start(request):
             student=student,
             score_percentage=score_pct,
             status=status,
+            date_taken=timezone.now()  # Explicitly set for immediate retrieval
         )
 
+        request.session['last_exam_breakdown'] = breakdown
+        request.session['last_exam_total_correct'] = correct
+        request.session['last_exam_total_q'] = total
         return redirect('exam_result')
 
-    # ── GET: Build exam data ─────────────────────────────────────────────────
-    # Fetch all questions grouped by category
+    # --- GET LOGIC (Required to render the exam) ---
     categories = Category.objects.prefetch_related('question_set__options').all()
-
     all_questions = []
     sections = []
     q_index = 0
 
     for cat in categories:
-        qs = list(cat.question_set.prefetch_related('options').all())
+        qs = list(cat.question_set.all())
+        if not qs: continue
 
-        if not qs:
-            continue
+        if config.randomize_questions: random.shuffle(qs)
 
-        if config.randomize_questions:
-            random.shuffle(qs)
-
-        if config.randomize_choices:
-            for q in qs:
-                q._shuffled_options = list(q.options.all())
-                random.shuffle(q._shuffled_options)
-            # Attach section index to each question for the template
-
-        start_index = q_index
         for q in qs:
-            q.section_index = len(sections)
+            q.shuffled_options = list(q.options.all())
+            if config.randomize_choices: random.shuffle(q.shuffled_options)
             all_questions.append(q)
             q_index += 1
 
         sections.append({
             'name': cat.name,
             'icon': get_icon(cat.name),
-            'start': start_index,
+            'start': q_index - len(qs),
             'end': q_index - 1,
         })
-
-    sections_json = json.dumps(sections)
 
     return render(request, 'ccat_student/exam.html', {
         'student': student,
         'config': config,
         'all_questions': all_questions,
         'sections': sections,
-        'sections_json': sections_json,
+        'sections_json': json.dumps(sections),
         'total_questions': len(all_questions),
     })
 
 
-@login_required(login_url='student_login')
+@login_required(login_url='login_view')
 def exam_result(request):
     student = get_student(request)
-    if not student:
-        return redirect('student_login')
-
     result = ExamResult.objects.filter(student=student).order_by('-date_taken').first()
-    return render(request, 'ccat_student/exam_result.html', {
+
+    if not result:
+        return redirect('exam_instructions')
+
+    context = {
         'student': student,
         'result': result,
-    })
+        'breakdown': request.session.get('last_exam_breakdown', {}),
+        'total_correct': request.session.get('last_exam_total_correct', 0),
+        'total_questions': request.session.get('last_exam_total_q', 0),
+    }
+    return render(request, 'ccat_student/exam_result.html', context)
+
+def logout_view(request):
+    logout(request)
+    return redirect('login_view')
