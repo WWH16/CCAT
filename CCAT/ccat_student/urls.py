@@ -8,5 +8,7 @@ urlpatterns = [
     path('signup/step-3/', views.signup_step3, name='signup_step3'),
     path('signup/step-4/', views.signup_step4, name='signup_step4'),
     path('exam_instructions/', views.exam_instructions, name='exam_instructions'),
-    # path('exam/start/', views.start_exam_logic, name='exam_start'),  # Add this
+    path('exam/start/', views.exam_start, name='exam_start'),
+    path('exam/submit/', views.exam_start, name='exam_submit'),  # POST goes here
+    path('exam/result/', views.exam_result, name='exam_result'),
 ]

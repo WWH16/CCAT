@@ -49,16 +49,21 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-on-surface">Anti-Cheat</p>
-                                <p class="text-xs text-on-surface-variant leading-relaxed">Do not leave the exam tab. A {{ config.tab_switch_deduction }}-minute penalty will be applied per violation.</p>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">Do not leave the exam tab. A {{ config.tab_switch_deduction }}-minute penalty applies per violation.</p>
                             </div>
                         </li>
                         <li class="flex gap-4">
                             <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px] text-primary">cloud_done</span>
+                                <span class="material-symbols-outlined text-[18px] text-primary">list_alt</span>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold text-on-surface">Auto-Save</p>
-                                <p class="text-xs text-on-surface-variant leading-relaxed">Your answer is recorded every time you select an option.</p>
+                                <p class="text-sm font-semibold text-on-surface">Subject Coverage</p>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">
+                                    Includes:
+                                    <span class="font-bold text-primary">
+                                        {% for cat in categorys %}{{ cat.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                    </span>
+                                </p>
                             </div>
                         </li>
                         <li class="flex gap-4">
@@ -67,7 +72,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-on-surface">Navigation</p>
-                                <p class="text-xs text-on-surface-variant leading-relaxed">You may go back to answered questions, but cannot skip forward.</p>
+                                <p class="text-xs text-on-surface-variant leading-relaxed">Questions must be answered in order. You can go back, but not skip ahead.</p>
                             </div>
                         </li>
                     </ul>
@@ -79,28 +84,27 @@
             <span class="material-symbols-outlined text-on-secondary-container mt-0.5" style="font-variation-settings:'FILL' 1">warning</span>
             <div>
                 <h4 class="text-sm font-bold text-on-secondary-container">Important Notice</h4>
-                <p class="text-sm text-on-secondary-container/90 mt-0.5">Once you click start, the {{ config.duration_minutes }}-minute timer begins immediately.</p>
+                <p class="text-sm text-on-secondary-container/90 mt-0.5">The {{ config.duration_minutes }}-minute timer starts the moment you click the button below.</p>
             </div>
         </div>
 
-        <form method="POST" action="#">
-            {% csrf_token %}
-            <div class="flex flex-col items-center space-y-6 pt-2">
-                <div class="flex items-center gap-3">
-                    <input id="agreement" type="checkbox" required
-                           class="w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer"/>
-                    <label for="agreement" class="text-sm font-medium text-on-surface-variant cursor-pointer">
-                        I, <b>{{ student.first_name }} {{ student.last_name }}</b>, have read the instructions and agree to the code of conduct.
-                    </label>
-                </div>
-
-                <button type="submit"
-                        class="group academic-gradient inline-flex items-center justify-center gap-3 px-12 py-5 font-bold text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all">
-                    START EXAMINATION
-                    <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </button>
+        <form method="GET" action="{% url 'exam_start' %}">
+        <div class="flex flex-col items-center space-y-6 pt-2">
+            <div class="flex items-center gap-3">
+                <input id="agreement" type="checkbox" required
+                       class="w-5 h-5 rounded border-outline text-primary focus:ring-primary cursor-pointer"/>
+                <label for="agreement" class="text-sm font-medium text-on-surface-variant cursor-pointer">
+                    I, <b>{{ student.first_name }} {{ student.last_name }}</b>, have read the instructions and agree to the code of conduct.
+                </label>
             </div>
-        </form>
+
+            <button type="submit"
+                    class="group inline-flex items-center justify-center gap-3 px-12 py-5 font-bold text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all bg-primary">
+                START EXAMINATION
+                <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </button>
+        </div>
+    </form>
 
     </div>
 </main>

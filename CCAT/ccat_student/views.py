@@ -3,8 +3,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+import json
+import random
+from django.utils import timezone
 
-from ccat_admin.models import Question, Category, Student, SessionKey, ExamConfig
+from ccat_admin.models import Question, Category, Student, SessionKey, ExamConfig, Option, ExamResult
 
 
 def signup_step1(request):
@@ -126,22 +129,22 @@ def login_view(request):
     return render(request, 'ccat_student/login.html')
 
 
-@login_required
+@login_required(login_url='login_view')
 def exam_instructions(request):
-    # 1. Get the student profile
-    student = request.user.student_profile
+    student = get_student(request)
+    if not student:
+        return redirect('login_view')
 
-    # 2. Get the global exam configuration
     config = ExamConfig.get_config()
 
-    # 3. Get real counts from the database
-    # Only count questions that have been validated by admins
-    total_questions = Question.objects.filter(is_validated=True).count()
-    total_sections = Category.objects.count()
+    # Get all categories that actually have questions
+    # This matches the logic used in exam_start
+    categories = Category.objects.filter(question__is_validated=True).distinct()
 
-    # 4. (Optional) Get the name of the active session
-    # We check for an active key; if you want the specific one they used to log in,
-    # you'd ideally store that in the session during login_view.
+    total_questions = Question.objects.filter(is_validated=True).count()
+    total_sections = categories.count()
+
+    # Get the session name (optional: you could store the specific key used in request.session)
     active_session = SessionKey.objects.filter(is_active=True).first()
     session_name = active_session.session_name if active_session else "General Admission"
 
@@ -150,6 +153,131 @@ def exam_instructions(request):
         'config': config,
         'total_questions': total_questions,
         'total_sections': total_sections,
+        'categorys': categories,  # List of Category objects
         'session_name': session_name,
     }
     return render(request, 'ccat_student/exam_instructions.html', context)
+
+def get_student(request):
+    """Helper — gets the Student profile for the logged-in user."""
+    try:
+        return request.user.student_profile
+    except Student.DoesNotExist:
+        return None
+
+
+# ── ICONS per category name (customize as needed)
+CATEGORY_ICONS = {
+    'mathematics': 'functions',
+    'math': 'functions',
+    'english': 'menu_book',
+    'language': 'menu_book',
+    'science': 'science',
+    'general science': 'science',
+    'reasoning': 'psychology',
+    'logical reasoning': 'psychology',
+}
+
+
+def get_icon(category_name):
+    return CATEGORY_ICONS.get(category_name.lower(), 'quiz')
+
+
+@login_required(login_url='student_login')
+def exam_start(request):
+    """
+    GET  — render the exam page with all questions loaded.
+    POST — score answers and save ExamResult.
+    """
+    student = get_student(request)
+    if not student:
+        return redirect('student_login')
+
+    config = ExamConfig.get_config()
+
+    # ── POST: Score the submitted exam ──────────────────────────────────────
+    if request.method == 'POST':
+        questions = Question.objects.prefetch_related('options').all()
+        total = questions.count()
+        correct = 0
+
+        for q in questions:
+            submitted_option_id = request.POST.get(f'q_{q.id}')
+            if submitted_option_id:
+                try:
+                    opt = Option.objects.get(id=submitted_option_id, question=q)
+                    if opt.is_correct:
+                        correct += 1
+                except Option.DoesNotExist:
+                    pass
+
+        score_pct = round((correct / total) * 100, 2) if total > 0 else 0
+        status = 'Pass' if score_pct >= 50 else 'Fail'
+
+        ExamResult.objects.create(
+            student=student,
+            score_percentage=score_pct,
+            status=status,
+        )
+
+        return redirect('exam_result')
+
+    # ── GET: Build exam data ─────────────────────────────────────────────────
+    # Fetch all questions grouped by category
+    categories = Category.objects.prefetch_related('question_set__options').all()
+
+    all_questions = []
+    sections = []
+    q_index = 0
+
+    for cat in categories:
+        qs = list(cat.question_set.prefetch_related('options').all())
+
+        if not qs:
+            continue
+
+        if config.randomize_questions:
+            random.shuffle(qs)
+
+        if config.randomize_choices:
+            for q in qs:
+                q._shuffled_options = list(q.options.all())
+                random.shuffle(q._shuffled_options)
+            # Attach section index to each question for the template
+
+        start_index = q_index
+        for q in qs:
+            q.section_index = len(sections)
+            all_questions.append(q)
+            q_index += 1
+
+        sections.append({
+            'name': cat.name,
+            'icon': get_icon(cat.name),
+            'start': start_index,
+            'end': q_index - 1,
+        })
+
+    sections_json = json.dumps(sections)
+
+    return render(request, 'ccat_student/exam.html', {
+        'student': student,
+        'config': config,
+        'all_questions': all_questions,
+        'sections': sections,
+        'sections_json': sections_json,
+        'total_questions': len(all_questions),
+    })
+
+
+@login_required(login_url='student_login')
+def exam_result(request):
+    student = get_student(request)
+    if not student:
+        return redirect('student_login')
+
+    result = ExamResult.objects.filter(student=student).order_by('-date_taken').first()
+    return render(request, 'ccat_student/exam_result.html', {
+        'student': student,
+        'result': result,
+    })
