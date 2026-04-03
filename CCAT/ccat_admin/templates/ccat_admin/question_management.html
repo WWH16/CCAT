@@ -31,10 +31,14 @@
 <div class="bg-surface-container-low p-4 rounded-xl mb-6 flex flex-wrap items-center gap-4 border border-outline-variant/10">
     <div class="relative flex-1 max-w-md">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
-        <input type="text" placeholder="Search questions..." class="w-full pl-10 pr-4 py-2 bg-white border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-sm">
+        <input id="searchInput"
+               oninput="filterQuestions()"
+               type="text"
+               placeholder="Search ID, text, or answers..."
+               class="w-full pl-10 pr-4 py-2 bg-white border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-sm">
     </div>
 
-    <select id="categoryFilter" onchange="filterByCategory()" class="bg-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary shadow-sm">
+    <select id="categoryFilter" onchange="filterQuestions()" class="bg-white border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-primary shadow-sm">
         <option value="all">All Categories</option>
         {% for cat in categories %}
             <option value="{{ cat.name }}">{{ cat.name }}</option>
@@ -201,15 +205,24 @@
         }
     }
 
-    // This handles BOTH category filtering and search typing
-    function filterByCategory() {
+    // Unified filter for Search and Category
+    function filterQuestions() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const selectedCategory = document.getElementById('categoryFilter').value;
         const rows = document.querySelectorAll('.question-row');
 
         rows.forEach(row => {
+            const qId = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+            const qText = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const qAnswer = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
             const rowCategory = row.getAttribute('data-category');
 
-            if (selectedCategory === "all" || rowCategory === selectedCategory) {
+            const matchesSearch = qId.includes(searchTerm) ||
+                                 qText.includes(searchTerm) ||
+                                 qAnswer.includes(searchTerm);
+            const matchesCategory = (selectedCategory === "all" || rowCategory === selectedCategory);
+
+            if (matchesSearch && matchesCategory) {
                 row.style.display = "";
             } else {
                 row.style.display = "none";
