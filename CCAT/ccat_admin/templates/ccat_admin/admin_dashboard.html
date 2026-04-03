@@ -23,13 +23,15 @@
     </button>
 </div>
 
+<!-- Summary Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
 
+    <!-- Total Students -->
     <div class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Total Students (Session)</p>
-                <h3 class="text-3xl font-bold text-on-surface">1,240</h3>
+                <h3 class="text-3xl font-bold text-on-surface">{{ total_students }}</h3>
                 <p class="text-xs text-primary font-medium mt-2 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">event</span>
                     Academic Year 2026
@@ -41,14 +43,19 @@
         </div>
     </div>
 
+    <!-- Passed Students -->
     <div class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Passed Students</p>
-                <h3 class="text-3xl font-bold text-on-surface">1,085</h3>
+                <h3 class="text-3xl font-bold text-on-surface">{{ passed_count }}</h3>
                 <p class="text-xs text-primary font-medium mt-2 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">check_circle</span>
-                    87.5% Success Rate
+                    {% if total_students > 0 %}
+                        {{ passed_count|floatformat:0 }} of {{ total_students }} examinees
+                    {% else %}
+                        No data yet
+                    {% endif %}
                 </p>
             </div>
             <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -57,14 +64,15 @@
         </div>
     </div>
 
+    <!-- Failed Students -->
     <div class="bg-surface-container-low border border-outline-variant/10 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm">
         <div class="flex items-start justify-between">
             <div>
                 <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Failed Students</p>
-                <h3 class="text-3xl font-bold text-on-surface">155</h3>
+                <h3 class="text-3xl font-bold text-on-surface">{{ failed_count }}</h3>
                 <p class="text-xs text-error font-medium mt-2 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">error</span>
-                    Requires Follow-up
+                    {% if failed_count > 0 %}Requires Follow-up{% else %}None so far{% endif %}
                 </p>
             </div>
             <div class="w-11 h-11 rounded-lg bg-error/10 flex items-center justify-center text-error">
@@ -75,12 +83,12 @@
 
 </div>
 
+<!-- Recent Activity Table -->
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-6">
 
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <h2 class="text-lg font-bold text-on-surface whitespace-nowrap font-headline">Recent Student Activity</h2>
         <div class="flex flex-wrap items-center gap-3">
-
             <div class="relative flex-1 min-w-[180px] max-w-xs">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
                 <input
@@ -89,19 +97,15 @@
                     class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm placeholder:text-outline/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
             </div>
-
             <div class="relative">
                 <select class="appearance-none pl-4 pr-9 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer">
-                    <option value="">All Departments</option>
-                    <option value="arts">College of Arts</option>
-                    <option value="science">College of Science</option>
-                    <option value="engineering">College of Engineering</option>
-                    <option value="business">College of Business</option>
+                    <option value="">All Statuses</option>
+                    <option value="Pass">Passed</option>
+                    <option value="Fail">Failed</option>
+                    <option value="In Progress">In Progress</option>
                 </select>
                 <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-lg pointer-events-none">expand_more</span>
             </div>
-
-            <button class="text-sm font-semibold text-primary hover:underline whitespace-nowrap">View All Logs</button>
         </div>
     </div>
 
@@ -110,28 +114,44 @@
             <thead>
                 <tr class="border-b border-surface-container">
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student Name</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Exam ID</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student ID</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Score</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Status</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date Taken</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-container">
+                {% for result in recent_results %}
                 <tr class="hover:bg-surface-container-high transition-colors">
                     <td class="py-4 px-2">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">JM</div>
-                            <span class="text-sm font-semibold text-on-surface">Julianne Moore</span>
+                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                                {{ result.student.full_name|slice:":2"|upper }}
+                            </div>
+                            <span class="text-sm font-semibold text-on-surface">{{ result.student.full_name }}</span>
                         </div>
                     </td>
-                    <td class="py-4 px-2 text-sm text-outline font-mono">#MATH-102</td>
-                    <td class="py-4 px-2 text-sm font-bold text-on-surface">92%</td>
+                    <td class="py-4 px-2 text-sm text-outline font-mono">{{ result.student.student_id }}</td>
+                    <td class="py-4 px-2 text-sm font-bold text-on-surface">{{ result.score_percentage }}%</td>
                     <td class="py-4 px-2">
-                        <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800">Pass</span>
+                        {% if result.status == 'Pass' %}
+                            <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800">Pass</span>
+                        {% elif result.status == 'Fail' %}
+                            <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-800">Fail</span>
+                        {% else %}
+                            <span class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-100 text-yellow-800">{{ result.status }}</span>
+                        {% endif %}
                     </td>
-                    <td class="py-4 px-2 text-sm text-outline">Oct 24, 2023</td>
+                    <td class="py-4 px-2 text-sm text-outline">{{ result.date_taken|date:"M d, Y" }}</td>
                 </tr>
-                </tbody>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-12 text-center text-outline italic text-sm">
+                        No exam results yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 
