@@ -103,31 +103,30 @@
     class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container"
   >
     <!-- Top Navigation Bar -->
-    <nav class="w-full top-0 sticky z-50 bg-[#f8f9fa] dark:bg-slate-900">
-      <div
-        class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto"
-      >
-        <div
-          class="text-xl font-bold dark:text-emerald-400 font-['Inter'] tracking-tight text-primary"
-        >
-          ISU Palanan Extension Campus
+    <nav class="w-full top-0 sticky z-50 bg-white border-b border-emerald-900/5 shadow-sm">
+      <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
+        <div class="flex items-center gap-4">
+          <img
+            src="{% static 'images/isu_logo.jpg' %}"
+            alt="ISU Logo"
+            class="h-10 w-10 object-contain"
+          />
+          <div class="flex flex-col">
+            <span class="text-lg font-bold tracking-tight text-primary leading-tight">
+              Isabela State University
+            </span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-800/60">
+              Palanan Extension Campus
+            </span>
+          </div>
         </div>
         <div class="hidden md:flex items-center gap-8">
-          <a
-            class="text-slate-600 dark:text-slate-400 transition-colors duration-200 ease-out font-['Inter'] font-semibold tracking-tight hover:text-primary"
-            href="#"
-            >System Status</a
-          >
-          <a
-            class="text-slate-600 dark:text-slate-400 transition-colors duration-200 ease-out font-['Inter'] font-semibold tracking-tight hover:text-primary"
-            href="#"
-            >Admin Help</a
-          >
-          <a
-            class="text-slate-600 dark:text-slate-400 transition-colors duration-200 ease-out font-['Inter'] font-semibold tracking-tight hover:text-primary"
-            href="#"
-            >Portal Analytics</a
-          >
+          <a class="text-slate-600 transition-colors duration-200 ease-out font-semibold text-sm hover:text-primary" href="#">
+            System Status
+          </a>
+          <a class="text-slate-600 transition-colors duration-200 ease-out font-semibold text-sm hover:text-primary" href="#">
+            Admin Help
+          </a>
         </div>
       </div>
     </nav>
