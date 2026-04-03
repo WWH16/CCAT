@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Student, ExamResult, Question, Category, Option, ExamConfig
-import csv
+from .models import Student, ExamResult, Question, Category, Option, ExamConfig, SessionKey
+import csv, string, random
 from django.utils import timezone
 from django.http import HttpResponse
+from django.utils.dateparse import parse_datetime # Add this import at the top
 
 
 # --- Authentication Views ---
@@ -185,6 +186,54 @@ def delete_question(request, question_id):
         question.delete()
     return redirect('question_management')
 
+
+# Helper to generate the key
+def generate_random_key():
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        # Format: ISU-XXXX
+        code = f"ISU-{''.join(random.choices(chars, k=4))}"
+        if not SessionKey.objects.filter(key_code=code).exists():
+            return code
+
+
+@login_required(login_url='admin_login')
 def access_keys(request):
-    # Placeholder for access key management
-    return render(request, 'ccat_admin/access_keys.html')
+    keys = SessionKey.objects.all()
+    # Check if any key is currently active to show/hide the yellow alert
+    active_exists = keys.filter(is_active=True).exists()
+
+    return render(request, 'ccat_admin/access_keys.html', {
+        'session_keys': keys,
+        'active_exists': active_exists
+    })
+
+@login_required(login_url='admin_login')
+def generate_access_key(request):
+    if request.method == "POST":
+        session_name = request.POST.get('session_name')
+        expiry_date_str = request.POST.get('expiry_date')
+
+        # Convert the string to a timezone-aware datetime object
+        naive_dt = parse_datetime(expiry_date_str)
+        aware_dt = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+
+        # Policy: Deactivate all existing active keys first
+        SessionKey.objects.filter(is_active=True).update(is_active=False)
+
+        SessionKey.objects.create(
+            session_name=session_name,
+            key_code=generate_random_key(),
+            expiry_date=aware_dt, # Use the aware datetime
+            created_by=request.user,
+            capacity=50
+        )
+    return redirect('access_keys')
+
+
+@login_required(login_url='admin_login')
+def revoke_key(request, key_id):
+    key = get_object_or_404(SessionKey, id=key_id)
+    key.is_active = False
+    key.save()
+    return redirect('access_keys')

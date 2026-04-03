@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import uuid
+from django.utils import timezone
 
 
 class AdminProfile(models.Model):
@@ -130,3 +132,47 @@ class ExamConfig(models.Model):
         """Always returns the single config row, creating it if it doesn't exist."""
         config, _ = cls.objects.get_or_create(pk=1)
         return config
+
+
+class SessionKey(models.Model):
+    session_name = models.CharField(max_length=100)
+    # The unique code (e.g., ISU-A1B2)
+    key_code = models.CharField(max_length=12, unique=True)
+
+    # Capacity management
+    capacity = models.PositiveIntegerField(default=50)
+    used_count = models.PositiveIntegerField(default=0)
+
+    # Expiration
+    expiry_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = "Session Key"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.session_name} ({self.key_code})"
+
+    @property
+    def status(self):
+        """Returns a string status for the UI badge."""
+        if not self.is_active:
+            return "Revoked"
+        if timezone.now() > self.expiry_date:
+            return "Expired"
+        if self.used_count >= self.capacity:
+            return "Full"
+        return "Active"
+
+    def is_valid(self):
+        """Quick check if a student can use this key right now."""
+        return (
+                self.is_active and
+                timezone.now() <= self.expiry_date and
+                self.used_count < self.capacity
+        )

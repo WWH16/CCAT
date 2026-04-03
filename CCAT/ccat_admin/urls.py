@@ -12,5 +12,6 @@ urlpatterns = [
     path('ccat_admin/questions/<int:question_id>/edit/',   views.edit_question,   name='edit_question'),
     path('ccat_admin/questions/<int:question_id>/delete/', views.delete_question, name='delete_question'),
     path('access-keys/', views.access_keys, name='access_keys'),
-    # path('generate-key/', views.generate_access_key, name='generate_access_key'),
+    path('access-keys/generate/', views.generate_access_key, name='generate_access_key'),
+    path('access-keys/revoke/<int:key_id>/', views.revoke_key, name='revoke_key'),
 ]
