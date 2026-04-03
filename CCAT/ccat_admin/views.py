@@ -92,14 +92,18 @@ def exam_settings(request):
     config = ExamConfig.get_config()
 
     if request.method == 'POST':
-        config.duration_minutes = int(request.POST.get('duration_minutes', 120))
-        config.randomize_questions = 'randomize_questions' in request.POST
-        config.randomize_choices = 'randomize_choices' in request.POST
+        config.duration_minutes     = int(request.POST.get('duration_minutes', 120))
+        config.randomize_questions  = 'randomize_questions' in request.POST
+        config.randomize_choices    = 'randomize_choices' in request.POST
         config.tab_switch_deduction = int(request.POST.get('tab_switch_deduction', 10))
         config.save()
         return redirect('exam_settings')
 
-    return render(request, 'ccat_admin/exam_settings.html', {'config': config})
+    return render(request, 'ccat_admin/exam_settings.html', {
+        'config':          config,
+        'total_students':  Student.objects.count(),
+        'total_questions': Question.objects.count(),
+    })
 
 @login_required(login_url='admin_login')
 def export_questions(request):
