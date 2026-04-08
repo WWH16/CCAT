@@ -87,20 +87,42 @@
       }
       .watermark-mask {
         mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-        -webkit-mask-image: linear-gradient(
-          to bottom,
-          black 0%,
-          transparent 100%
-        );
+        -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
       }
       .glass-panel {
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(12px);
       }
+    body {
+      background: linear-gradient(to bottom right, #ffffff, #ecfdf5);
+      background-attachment: fixed;
+    }
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 73px;  /* push below navbar height */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 73px);  /* reduce height accordingly */
+  background-image: url("{% static 'images/isu_logo.jpg' %}");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 700px auto;
+  opacity: 0.06;
+  filter: grayscale(100%);
+  pointer-events: none;
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 90%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 90%);
+}
+    nav {
+  border-bottom: 1px solid rgba(0, 77, 39, 0.08);
+}
     </style>
   </head>
   <body
-    class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container"
+    class="font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container"
   >
     <!-- Top Navigation Bar -->
     <nav class="w-full top-0 sticky z-50 bg-white border-b border-emerald-900/5 shadow-sm">
@@ -132,23 +154,9 @@
     </nav>
     <!-- Hero Content & Login Section -->
     <main
-      class="relative min-h-[calc(100vh-160px)] flex items-center justify-center overflow-hidden"
+      class="relative min-h-[calc(100vh-73px)] flex items-center justify-center overflow-hidden"
     >
-      <!-- Subtle Green Background & Watermark -->
-      <div
-        class="absolute inset-0 z-0 bg-gradient-to-br from-surface to-[#eff6f1]"
-      >
-        <div
-          class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none watermark-mask"
-        >
-          <img
-            alt="Institutional watermark of a prestigious university crest with intricate heraldic details and academic symbols"
-            class="w-[800px] h-auto grayscale"
-            data-alt="Faded large university crest watermark with shield and laurel leaves centered behind the login portal"
-            src="https://lh3.googleusercontent.com/aida/ADBb0ug7AIpAx1MXgt7620fvvaRJ49Pvx1rsc0I97_FkfKh_HyfEBZGfCqfGp7n9JTbr2OgnnLQoJ6eCcKO1gxYjQ-BHlH_Zd_I7syIJUJLuDEyAMhHYetqqxmmuYfgXrrHMY11ti7Pln095ut2vGnAdMyucICPNT_xC6bumW2hnYQYpfOOPq5e9HyLZyOj4sxDNvsKCTscCGd53_K2HKejkQ8X17aRIaiQe--POlT4TyWbvoDvsr3H3y4Xk_50tkwFk_8_IcINB2E8KBg"
-          />
-        </div>
-      </div>
+        <div class="absolute inset-0 z-0"></div>
       <div
         class="relative z-10 w-full max-w-6xl px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
       >
