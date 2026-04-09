@@ -47,7 +47,6 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .question-slide.active { animation: fadeIn 0.2s ease forwards; }
         .option-label { transition: border-color 0.15s, background-color 0.15s; }
         .option-label.selected { border-color: #004d27; background-color: #ffffff; box-shadow: 0 1px 4px rgba(0,77,39,0.1); }
@@ -159,7 +158,7 @@
                 <form id="examForm" method="POST" action="{% url 'exam_submit' %}">
                     {% csrf_token %}
                     {% for q in all_questions %}
-                    <div class="question-slide {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter0 }}">
+                    <div class="question-slide {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter0 }}" data-qid="{{ q.id }}">
                         <div class="bg-surface-container-lowest rounded-xl shadow-sm p-8 lg:p-10 relative overflow-hidden mb-6 border border-slate-100">
                             <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-primary-container"></div>
                             <p class="text-lg font-medium leading-relaxed text-on-surface mb-8">{{ q.question_text }}</p>
@@ -190,6 +189,7 @@
         </main>
     </div>
 
+    <!-- Submit Modal -->
     <div id="submitModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-primary/20 backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
             <div class="p-8 text-center border-b border-surface-container">
@@ -208,6 +208,7 @@
         </div>
     </div>
 
+    <!-- Security Modal -->
     <div id="securityModal" class="hidden fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center border-4 border-error/20">
             <div class="w-20 h-20 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -215,7 +216,7 @@
             </div>
             <h3 class="text-2xl font-extrabold text-on-surface mb-2">Security Alert!</h3>
             <p class="text-on-surface-variant text-base mb-6">
-                Switching tabs or applications is strictly prohibited. <br>
+                Switching tabs or applications is strictly prohibited.<br>
                 <span class="font-bold text-error">A penalty of {{ config.tab_switch_deduction }} minutes</span> has been deducted from your remaining time.
             </p>
             <button onclick="closeSecurityModal()" class="w-full py-4 text-white font-bold bg-primary rounded-xl shadow-lg hover:bg-primary-container transition-all">
@@ -224,6 +225,7 @@
         </div>
     </div>
 
+    <!-- Time Up Modal -->
     <div id="timeUpModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center">
             <h3 class="text-2xl font-extrabold text-on-surface mb-2">Time's Up!</h3>
@@ -232,24 +234,71 @@
     </div>
 
     <script>
-        const TOTAL_QUESTIONS = {{ total_questions }};
+        const TOTAL_QUESTIONS  = {{ total_questions }};
         const DURATION_SECONDS = {{ config.duration_minutes }} * 60;
-        const SECTIONS = {{ sections_json|safe }};
-        const PENALTY_SECONDS = {{ config.tab_switch_deduction }} * 60;
+        const SECTIONS         = {{ sections_json|safe }};
+        const PENALTY_SECONDS  = {{ config.tab_switch_deduction }} * 60;
+        const CSRF_TOKEN       = '{{ csrf_token }}';
+        const SAVE_ANSWER_URL  = '{% url "exam_save_answer" %}';
+        const SAVE_FLAG_URL    = '{% url "exam_save_flag" %}';
 
-        let currentIndex = 0;
-        let answers = {};
-        let flagged = new Set();
-        let timerSeconds = DURATION_SECONDS;
-        let timerInterval = null;
+        // Restored from server session
+        const SAVED_ANSWERS = {{ saved_answers_json|safe }};
+        const SAVED_FLAGGED = {{ saved_flagged_json|safe }};
+        const RESUME_INDEX  = {{ resume_index }};
+
+        let currentIndex   = 0;
+        let answers        = {};        // { qIndex: optionId }
+        let flagged        = new Set();
+        let highestReached = 0;         // furthest index unlocked by answering/flagging
+        let timerSeconds   = DURATION_SECONDS;
+        let timerInterval  = null;
         let isWarningActive = false;
 
+        // Map data-qid → 0-based index, built once
+        const qidToIndex = {};
+        document.querySelectorAll('.question-slide').forEach((slide, i) => {
+            qidToIndex[slide.dataset.qid] = i;
+        });
+
+        // ── Restore saved state from server ──────────────────────────────────
+        function restoreState() {
+            // Restore answers into JS state and check the right radios
+            Object.entries(SAVED_ANSWERS).forEach(([qid, optId]) => {
+                const idx = qidToIndex[qid];
+                if (idx === undefined) return;
+                answers[idx] = optId;
+                const slide = document.getElementById(`question${idx}`);
+                if (!slide) return;
+                const radio = slide.querySelector(`input[value="${optId}"]`);
+                if (radio) {
+                    radio.checked = true;
+                    radio.closest('.option-label').classList.add('selected', 'ring-2', 'ring-primary');
+                }
+            });
+
+            // Restore flags
+            SAVED_FLAGGED.forEach(idx => flagged.add(idx));
+
+            // Rebuild highestReached: walk forward, stop at first untouched gap
+            highestReached = 0;
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+                if (answers[i] !== undefined || flagged.has(i)) {
+                    highestReached = Math.min(i + 1, TOTAL_QUESTIONS - 1);
+                } else {
+                    break;
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            goToQuestion(0);
+            restoreState();
+            goToQuestion(RESUME_INDEX);
             startTimer();
             setupSecurity();
         });
 
+        // ── Timer ─────────────────────────────────────────────────────────────
         function startTimer() {
             timerInterval = setInterval(() => {
                 timerSeconds--;
@@ -262,22 +311,21 @@
         }
 
         function updateTimerDisplay() {
-            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            const m  = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s  = (timerSeconds % 60).toString().padStart(2, '0');
             const el = document.getElementById('timerDisplay');
             el.textContent = `${m}:${s}`;
             if (timerSeconds < 300) el.classList.add('text-red-400');
         }
 
+        // ── Security ──────────────────────────────────────────────────────────
         function setupSecurity() {
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
                     isWarningActive = true;
-                } else {
-                    if (isWarningActive) {
-                        applyPenalty();
-                        showSecurityModal();
-                    }
+                } else if (isWarningActive) {
+                    applyPenalty();
+                    showSecurityModal();
                 }
             });
         }
@@ -286,23 +334,18 @@
             timerSeconds -= PENALTY_SECONDS;
             if (timerSeconds < 0) timerSeconds = 0;
             updateTimerDisplay();
-
-            const timerEl = document.getElementById('timerDisplay');
-            timerEl.classList.add('timer-penalty');
-            setTimeout(() => {
-                timerEl.classList.remove('timer-penalty');
-            }, 1000);
+            const el = document.getElementById('timerDisplay');
+            el.classList.add('timer-penalty');
+            setTimeout(() => el.classList.remove('timer-penalty'), 1000);
         }
 
-        function showSecurityModal() {
-            document.getElementById('securityModal').classList.remove('hidden');
-        }
-
+        function showSecurityModal() { document.getElementById('securityModal').classList.remove('hidden'); }
         function closeSecurityModal() {
             document.getElementById('securityModal').classList.add('hidden');
             isWarningActive = false;
         }
 
+        // ── Navigation ────────────────────────────────────────────────────────
         function goToQuestion(index) {
             if (index < 0 || index >= TOTAL_QUESTIONS) return;
 
@@ -323,7 +366,6 @@
 
             const nextBtnText = document.getElementById('nextBtnText');
             const nextBtnIcon = document.getElementById('nextBtnIcon');
-
             if (index === TOTAL_QUESTIONS - 1) {
                 nextBtnText.textContent = "Review & Submit";
                 nextBtnIcon.textContent = "done_all";
@@ -333,70 +375,89 @@
             }
         }
 
+        // Answer — saves to session, advances highestReached
         function onAnswer(qIndex, input) {
             answers[qIndex] = input.value;
+
             const slide = document.getElementById(`question${qIndex}`);
             slide.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected', 'ring-2', 'ring-primary'));
             input.closest('.option-label').classList.add('selected', 'ring-2', 'ring-primary');
 
+            // Answering this question unlocks the next one
+            highestReached = Math.max(highestReached, Math.min(qIndex + 1, TOTAL_QUESTIONS - 1));
+
             const ind = document.getElementById('saveIndicator');
             ind.style.opacity = '1';
             setTimeout(() => ind.style.opacity = '0', 1500);
+
             updateGrid();
+
+            const qid = document.getElementById(`question${qIndex}`).dataset.qid;
+            fetch(SAVE_ANSWER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ question_id: qid, option_id: input.value }),
+            }).catch(err => console.warn('Save answer failed:', err));
         }
 
+        // Next — requires current question to be answered or flagged
         function nextQuestion() {
             if (currentIndex === TOTAL_QUESTIONS - 1) {
                 openSubmitModal();
                 return;
             }
-
             if (answers[currentIndex] !== undefined || flagged.has(currentIndex)) {
                 goToQuestion(currentIndex + 1);
             } else {
-                const card = document.getElementById(`question${currentIndex}`).querySelector('.bg-surface-container-lowest');
+                const card = document.getElementById(`question${currentIndex}`)
+                    .querySelector('.bg-surface-container-lowest');
                 card.classList.add('shake', 'border-error');
                 setTimeout(() => card.classList.remove('shake', 'border-error'), 400);
             }
         }
 
+        // Previous — always free
         function prevQuestion() { goToQuestion(currentIndex - 1); }
 
+        // Grid — accessible up to highestReached (both forward and backward)
         function jumpToQuestion(idx) {
-            if (idx <= currentIndex || answers[idx] !== undefined || (idx > 0 && (answers[idx-1] !== undefined || flagged.has(idx-1)))) {
-                goToQuestion(idx);
-            }
+            if (idx <= highestReached) goToQuestion(idx);
         }
 
+        // Section nav — accessible if section start <= highestReached
         function jumpToSection(secIdx) {
             const sec = SECTIONS[secIdx];
-            if (sec.start <= currentIndex || answers[sec.start] !== undefined || flagged.has(sec.start)) {
-                goToQuestion(sec.start);
-            }
+            if (sec.start <= highestReached) goToQuestion(sec.start);
         }
 
+        // Flag — also advances highestReached, then moves forward
         function toggleFlag() {
-            let wasFlagged = flagged.has(currentIndex);
+            const wasFlagged = flagged.has(currentIndex);
 
             if (wasFlagged) {
                 flagged.delete(currentIndex);
             } else {
                 flagged.add(currentIndex);
+                // Flagging unlocks the next question just like answering does
+                highestReached = Math.max(highestReached, Math.min(currentIndex + 1, TOTAL_QUESTIONS - 1));
             }
 
             updateFlagBtn();
             updateGrid();
 
-            if (!wasFlagged) {
-                setTimeout(() => {
-                    nextQuestion();
-                }, 200);
-            }
+            fetch(SAVE_FLAG_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ index: currentIndex, flagged: flagged.has(currentIndex) }),
+            }).catch(err => console.warn('Save flag failed:', err));
+
+            if (!wasFlagged) setTimeout(() => nextQuestion(), 200);
         }
 
+        // ── UI Updates ────────────────────────────────────────────────────────
         function updateFlagBtn() {
-            const btn = document.getElementById('flagBtn');
-            btn.classList.toggle('bg-secondary-container', flagged.has(currentIndex));
+            document.getElementById('flagBtn')
+                .classList.toggle('bg-secondary-container', flagged.has(currentIndex));
         }
 
         function updateGrid() {
@@ -414,10 +475,14 @@
                     btn.classList.add("bg-surface-container", "text-outline");
                 }
 
-                let canAccess = (i <= currentIndex) || (i > 0 && (answers[i-1] !== undefined || flagged.has(i-1)));
-                btn.disabled = !canAccess;
+                // Any question at or before highestReached is clickable
+                const accessible = (i <= highestReached);
+                btn.disabled = !accessible;
+                if (!accessible) btn.classList.add("opacity-40", "cursor-not-allowed");
             }
-            document.getElementById('savedCount').textContent = `${Object.keys(answers).length} / ${TOTAL_QUESTIONS} Saved`;
+
+            document.getElementById('savedCount').textContent =
+                `${Object.keys(answers).length} / ${TOTAL_QUESTIONS} Saved`;
         }
 
         function updateSectionNav(activeIdx) {
@@ -427,16 +492,17 @@
             });
         }
 
+        // ── Submit ────────────────────────────────────────────────────────────
         function openSubmitModal() {
             const ans = Object.keys(answers).length;
-            document.getElementById('modalAnswered').textContent = ans;
+            document.getElementById('modalAnswered').textContent   = ans;
             document.getElementById('modalUnanswered').textContent = TOTAL_QUESTIONS - ans;
-            document.getElementById('modalFlagged').textContent = flagged.size;
+            document.getElementById('modalFlagged').textContent    = flagged.size;
             document.getElementById('submitModal').classList.remove('hidden');
         }
 
         function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
-        function submitExam() { document.getElementById('examForm').submit(); }
+        function submitExam()       { document.getElementById('examForm').submit(); }
         function autoSubmit() {
             document.getElementById('timeUpModal').classList.remove('hidden');
             setTimeout(() => submitExam(), 2000);
