@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 import json
 import random
 from django.utils import timezone
@@ -42,7 +44,6 @@ def signup_step2(request):
 def signup_step3(request):
     if request.method == 'POST':
         data = request.session.get('signup_data', {})
-        # Sync these keys with your HTML input names
         data.update({
             'lrn_number': request.POST.get('lrn_number'),
             'last_school_attended': request.POST.get('last_school_attended'),
@@ -71,11 +72,7 @@ def signup_step4(request):
             return redirect('signup_step1')
 
         try:
-            # CHANGE: Set password to 'username' (the LRN).
-            # This allows the student to have an account, but they still
-            # can't enter the exam without the Admin's SessionKey.
             user = User.objects.create_user(username=username, password=username)
-
             Student.objects.create(
                 user=user,
                 **data,
@@ -83,10 +80,7 @@ def signup_step4(request):
                 second_priority=p2,
                 third_priority=p3
             )
-
             del request.session['signup_data']
-
-            # No need to show 'access_key' here since the Admin provides it later.
             return render(request, 'ccat_student/success.html', {'lrn': username})
 
         except Exception as e:
@@ -101,25 +95,18 @@ def login_view(request):
         lrn = request.POST.get('username')
         provided_key = request.POST.get('password')
 
-        # 1. Authenticate the student account
         user = authenticate(request, username=lrn, password=lrn)
 
         if user is not None:
             try:
-                # 2. Get the key from the database using actual fields
                 session_key = SessionKey.objects.get(key_code=provided_key, is_active=True)
 
-                # 3. Use your model's logic to check expiry and capacity
                 if session_key.is_valid():
                     login(request, user)
-
-                    # Optional: Increment the used_count since a student just logged in
                     session_key.used_count += 1
                     session_key.save()
-
                     return redirect('exam_instructions')
                 else:
-                    # Specific error based on why it's invalid
                     messages.error(request, f"Access Key is {session_key.status}.")
 
             except SessionKey.DoesNotExist:
@@ -130,35 +117,6 @@ def login_view(request):
     return render(request, 'ccat_student/login.html')
 
 
-@login_required(login_url='login_view')
-def exam_instructions(request):
-    student = get_student(request)
-    if not student:
-        return redirect('login_view')
-
-    config = ExamConfig.get_config()
-
-    # Get all categories that actually have questions
-    # This matches the logic used in exam_start
-    categories = Category.objects.filter(question__is_validated=True).distinct()
-
-    total_questions = Question.objects.filter(is_validated=True).count()
-    total_sections = categories.count()
-
-    # Get the session name (optional: you could store the specific key used in request.session)
-    active_session = SessionKey.objects.filter(is_active=True).first()
-    session_name = active_session.session_name if active_session else "General Admission"
-
-    context = {
-        'student': student,
-        'config': config,
-        'total_questions': total_questions,
-        'total_sections': total_sections,
-        'categorys': categories,  # List of Category objects
-        'session_name': session_name,
-    }
-    return render(request, 'ccat_student/exam_instructions.html', context)
-
 def get_student(request):
     """Helper — gets the Student profile for the logged-in user."""
     try:
@@ -167,7 +125,6 @@ def get_student(request):
         return None
 
 
-# ── ICONS per category name (customize as needed)
 CATEGORY_ICONS = {
     'mathematics': 'functions',
     'math': 'functions',
@@ -184,7 +141,78 @@ def get_icon(category_name):
     return CATEGORY_ICONS.get(category_name.lower(), 'quiz')
 
 
-@login_required(login_url='login_view')  # Changed from student_login
+@login_required(login_url='login_view')
+def exam_instructions(request):
+    student = get_student(request)
+    if not student:
+        return redirect('login_view')
+
+    config = ExamConfig.get_config()
+    # No is_validated filter — admin controls the question bank
+    categories = Category.objects.filter(question__isnull=False).distinct()
+    total_questions = Question.objects.count()
+    total_sections = categories.count()
+
+    active_session = SessionKey.objects.filter(is_active=True).first()
+    session_name = active_session.session_name if active_session else "General Admission"
+
+    context = {
+        'student': student,
+        'config': config,
+        'total_questions': total_questions,
+        'total_sections': total_sections,
+        'categorys': categories,
+        'session_name': session_name,
+    }
+    return render(request, 'ccat_student/exam_instructions.html', context)
+
+
+def _build_exam_session(request, config):
+    """
+    Build the question order for the first time and store it in the session.
+    Returns (all_questions, sections) where all_questions is a list of question IDs in order.
+    """
+    categories = Category.objects.prefetch_related('question_set__options').all()
+    question_id_order = []   # list of question IDs in final order
+    option_order_map = {}    # {question_id: [option_id, ...]} — shuffled option order
+    sections = []
+    q_index = 0
+
+    for cat in categories:
+        qs = list(cat.question_set.all())
+        if not qs:
+            continue
+
+        if config.randomize_questions:
+            random.shuffle(qs)
+
+        for q in qs:
+            opts = list(q.options.all())
+            if config.randomize_choices:
+                random.shuffle(opts)
+            question_id_order.append(q.id)
+            option_order_map[str(q.id)] = [o.id for o in opts]
+            q_index += 1
+
+        sections.append({
+            'name': cat.name,
+            'icon': get_icon(cat.name),
+            'start': q_index - len(qs),
+            'end': q_index - 1,
+        })
+
+    # Persist to session so refresh restores the same order
+    request.session['exam_question_order'] = question_id_order
+    request.session['exam_option_order'] = option_order_map
+    request.session['exam_sections'] = sections
+    request.session['exam_answers'] = {}       # {str(q_id): str(option_id)}
+    request.session['exam_flagged'] = []       # list of question indexes (0-based)
+    request.session.modified = True
+
+    return question_id_order, option_order_map, sections
+
+
+@login_required(login_url='login_view')
 def exam_start(request):
     student = get_student(request)
     if not student:
@@ -192,10 +220,23 @@ def exam_start(request):
 
     config = ExamConfig.get_config()
 
+    # ── POST: score the exam ──────────────────────────────────────────────────
     if request.method == 'POST':
-        # --- SCORING LOGIC ---
-        questions = Question.objects.prefetch_related('options', 'category').all()
-        total = questions.count()
+        # Guard: prevent double submission
+        if ExamResult.objects.filter(student=student).exists():
+            return redirect('exam_result')
+
+        # Use the stored question order so scoring matches what was shown
+        question_id_order = request.session.get('exam_question_order', [])
+
+        if not question_id_order:
+            # Fallback: score all questions if session expired
+            question_id_order = list(Question.objects.values_list('id', flat=True))
+
+        questions = Question.objects.prefetch_related('options', 'category').filter(
+            id__in=question_id_order
+        )
+        total = len(question_id_order)
         correct = 0
         breakdown = {}
 
@@ -212,7 +253,7 @@ def exam_start(request):
                     if opt.is_correct:
                         correct += 1
                         breakdown[cat_name]['correct'] += 1
-                except:
+                except Option.DoesNotExist:
                     pass
 
         score_pct = round((correct / total) * 100, 2) if total > 0 else 0
@@ -222,38 +263,63 @@ def exam_start(request):
             student=student,
             score_percentage=score_pct,
             status=status,
-            date_taken=timezone.now()  # Explicitly set for immediate retrieval
         )
+
+        # Clear exam session data after submission
+        for key in ['exam_question_order', 'exam_option_order', 'exam_sections',
+                    'exam_answers', 'exam_flagged']:
+            request.session.pop(key, None)
 
         request.session['last_exam_breakdown'] = breakdown
         request.session['last_exam_total_correct'] = correct
         request.session['last_exam_total_q'] = total
         return redirect('exam_result')
 
-    # --- GET LOGIC (Required to render the exam) ---
-    categories = Category.objects.prefetch_related('question_set__options').all()
+    # ── GET: render the exam ──────────────────────────────────────────────────
+    # Check if a saved session already exists (student refreshed)
+    question_id_order = request.session.get('exam_question_order')
+    option_order_map = request.session.get('exam_option_order', {})
+    sections = request.session.get('exam_sections', [])
+    saved_answers = request.session.get('exam_answers', {})
+    saved_flagged = request.session.get('exam_flagged', [])
+
+    if not question_id_order:
+        # First load — build and store the order
+        question_id_order, option_order_map, sections = _build_exam_session(request, config)
+        saved_answers = {}
+        saved_flagged = []
+
+    # Fetch questions in the stored order
+    question_map = {
+        q.id: q
+        for q in Question.objects.prefetch_related('options').filter(id__in=question_id_order)
+    }
+
     all_questions = []
-    sections = []
-    q_index = 0
+    for qid in question_id_order:
+        q = question_map.get(qid)
+        if not q:
+            continue
+        # Restore the shuffled option order
+        opt_ids = option_order_map.get(str(qid), [])
+        opt_map = {o.id: o for o in q.options.all()}
+        q.shuffled_options = [opt_map[oid] for oid in opt_ids if oid in opt_map]
+        all_questions.append(q)
 
-    for cat in categories:
-        qs = list(cat.question_set.all())
-        if not qs: continue
+    # Determine the resume index: first unanswered and unflagged question
+    answered_indexes = set()
+    flagged_indexes = set(saved_flagged)
+    for i, q in enumerate(all_questions):
+        if str(q.id) in saved_answers:
+            answered_indexes.add(i)
 
-        if config.randomize_questions: random.shuffle(qs)
-
-        for q in qs:
-            q.shuffled_options = list(q.options.all())
-            if config.randomize_choices: random.shuffle(q.shuffled_options)
-            all_questions.append(q)
-            q_index += 1
-
-        sections.append({
-            'name': cat.name,
-            'icon': get_icon(cat.name),
-            'start': q_index - len(qs),
-            'end': q_index - 1,
-        })
+    resume_index = 0
+    for i in range(len(all_questions)):
+        if i in answered_indexes or i in flagged_indexes:
+            resume_index = i + 1
+        else:
+            break
+    resume_index = min(resume_index, len(all_questions) - 1)
 
     return render(request, 'ccat_student/exam.html', {
         'student': student,
@@ -262,7 +328,62 @@ def exam_start(request):
         'sections': sections,
         'sections_json': json.dumps(sections),
         'total_questions': len(all_questions),
+        # Pass saved state back to JS
+        'saved_answers_json': json.dumps(saved_answers),   # {str(q_id): str(opt_id)}
+        'saved_flagged_json': json.dumps(saved_flagged),   # [index, ...]
+        'resume_index': resume_index,
     })
+
+
+@require_POST
+@login_required(login_url='login_view')
+def exam_save_answer(request):
+    """
+    AJAX endpoint — saves a single answer to the session.
+    Body: { question_id, option_id }
+    """
+    try:
+        data = json.loads(request.body)
+        q_id = str(data.get('question_id'))
+        opt_id = str(data.get('option_id'))
+
+        if not q_id or not opt_id:
+            return JsonResponse({'ok': False, 'error': 'Missing fields'}, status=400)
+
+        answers = request.session.get('exam_answers', {})
+        answers[q_id] = opt_id
+        request.session['exam_answers'] = answers
+        request.session.modified = True
+
+        return JsonResponse({'ok': True})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+@require_POST
+@login_required(login_url='login_view')
+def exam_save_flag(request):
+    """
+    AJAX endpoint — toggles a flag for a question index.
+    Body: { index, flagged: true/false }
+    """
+    try:
+        data = json.loads(request.body)
+        index = int(data.get('index'))
+        is_flagged = bool(data.get('flagged'))
+
+        flagged = request.session.get('exam_flagged', [])
+        if is_flagged and index not in flagged:
+            flagged.append(index)
+        elif not is_flagged and index in flagged:
+            flagged.remove(index)
+
+        request.session['exam_flagged'] = flagged
+        request.session.modified = True
+
+        return JsonResponse({'ok': True})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 
 @login_required(login_url='login_view')
@@ -281,6 +402,7 @@ def exam_result(request):
         'total_questions': request.session.get('last_exam_total_q', 0),
     }
     return render(request, 'ccat_student/exam_result.html', context)
+
 
 def logout_view(request):
     logout(request)
