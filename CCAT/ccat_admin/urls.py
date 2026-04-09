@@ -14,4 +14,10 @@ urlpatterns = [
     path('access-keys/', views.access_keys, name='access_keys'),
     path('access-keys/generate/', views.generate_access_key, name='generate_access_key'),
     path('access-keys/revoke/<int:key_id>/', views.revoke_key, name='revoke_key'),
+
+    # Dashboard
+    path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+
+    # CSV export — always exports all results regardless of filter
+    path('export/csv/', views.admin_export_csv, name='admin_export_csv'),
 ]

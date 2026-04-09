@@ -6,6 +6,8 @@ import csv, string, random
 from django.utils import timezone
 from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime # Add this import at the top
+from django.core.paginator import Paginator
+from django.db.models import Q, Count
 
 
 # --- Authentication Views ---
@@ -28,27 +30,6 @@ def admin_login(request):
 def admin_logout(request):
     logout(request)
     return redirect('admin_login')
-
-
-# --- Protected Admin Views ---
-@login_required(login_url='admin_login')
-def admin_dashboard(request):
-    # Fetch the session that is marked active and has an expiry date in the future
-    active_session = SessionKey.objects.filter(
-        is_active=True,
-        expiry_date__gt=timezone.now()
-    ).first()
-
-    context = {
-        'total_students': Student.objects.count(),
-        'total_questions': Question.objects.count(),
-        'passed_count': ExamResult.objects.filter(status='Pass').count(),
-        'failed_count': ExamResult.objects.filter(status='Fail').count(),
-        'recent_results': ExamResult.objects.select_related('student').order_by('-date_taken')[:5],
-        # Add this line to the context
-        'active_session': active_session,
-    }
-    return render(request, 'ccat_admin/admin_dashboard.html', context)
 
 @login_required(login_url='admin_login')
 def question_management(request):
@@ -244,3 +225,132 @@ def revoke_key(request, key_id):
     key.is_active = False
     key.save()
     return redirect('access_keys')
+
+
+# ── Helper ────────────────────────────────────────────────────────────────────
+
+def get_admin(request):
+    """Returns the AdminProfile for the logged-in user, or None."""
+    try:
+        return request.user.adminprofile
+    except Exception:
+        return None
+
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+
+@login_required(login_url='admin_login')
+def admin_dashboard(request):
+    admin = get_admin(request)
+    if not admin:
+        return redirect('admin_login')
+
+    # ── Stat card counts ──────────────────────────────────────────────────────
+    total_students = Student.objects.count()
+    total_examinees = ExamResult.objects.values('student').distinct().count()
+    passed_count = ExamResult.objects.filter(status='Pass').count()
+    failed_count = ExamResult.objects.filter(status='Fail').count()
+    active_session = SessionKey.objects.filter(is_active=True).first()
+
+    # ── Search & filter ───────────────────────────────────────────────────────
+    search = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', '').strip()
+
+    results = ExamResult.objects.select_related('student').order_by('-date_taken')
+
+    if search:
+        results = results.filter(
+            Q(student__first_name__icontains=search) |
+            Q(student__last_name__icontains=search)
+        )
+
+    if status_filter:
+        results = results.filter(status=status_filter)
+
+    # ── Pagination (20 per page) ───────────────────────────────────────────────
+    paginator = Paginator(results, 20)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'admin': admin,
+        'total_students': total_students,
+        'total_examinees': total_examinees,
+        'passed_count': passed_count,
+        'failed_count': failed_count,
+        'active_session': active_session,
+        'page_obj': page_obj,
+        # Preserve filter values so template can re-populate inputs and build pagination links
+        'search': search,
+        'status_filter': status_filter,
+    }
+    return render(request, 'ccat_admin/admin_dashboard.html', context)
+
+
+# ── CSV Export ────────────────────────────────────────────────────────────────
+
+@login_required(login_url='admin_login')
+def admin_export_csv(request):
+    """Export ALL exam results as a CSV file (ignores search/filter)."""
+    admin = get_admin(request)
+    if not admin:
+        return redirect('admin_login')
+
+    response = HttpResponse(content_type='text/csv')
+    filename = f"exam_results_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+
+    # Header row
+    writer.writerow([
+        'Last Name',
+        'First Name',
+        'Middle Initial',
+        'LRN Number',
+        'Gender',
+        'Date of Birth',
+        'Mobile Number',
+        'Province',
+        'City / Municipality',
+        'Barangay',
+        'Last School Attended',
+        'GWA Score',
+        'First Priority',
+        'Second Priority',
+        'Third Priority',
+        'Score (%)',
+        'Status',
+        'Date Taken',
+    ])
+
+    results = (
+        ExamResult.objects
+        .select_related('student')
+        .order_by('student__last_name', 'student__first_name')
+    )
+
+    for result in results:
+        s = result.student
+        writer.writerow([
+            s.last_name,
+            s.first_name,
+            s.middle_initial or '',
+            s.lrn_number,
+            s.get_gender_display(),
+            s.date_of_birth.strftime('%Y-%m-%d') if s.date_of_birth else '',
+            s.mobile_number,
+            s.province,
+            s.city_municipality,
+            s.barangay,
+            s.last_school_attended,
+            s.gwa_score,
+            s.get_first_priority_display(),
+            s.get_second_priority_display(),
+            s.get_third_priority_display(),
+            result.score_percentage,
+            result.status,
+            result.date_taken.strftime('%Y-%m-%d %H:%M:%S'),
+        ])
+
+    return response
