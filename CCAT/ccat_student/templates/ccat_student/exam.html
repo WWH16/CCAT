@@ -78,7 +78,7 @@
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full border border-white/10">
                 <span class="material-symbols-outlined text-emerald-100 text-lg">timer</span>
-                <span id="timerDisplay" class="text-white font-bold tracking-widest text-base">{{ config.duration_minutes }}:00</span>
+                <span id="timerDisplay" class="text-white font-bold tracking-widest text-base">--:--</span>
             </div>
             <div class="flex items-center gap-3">
                 <div class="text-right hidden sm:block">
@@ -234,36 +234,35 @@
     </div>
 
     <script>
-        const TOTAL_QUESTIONS  = {{ total_questions }};
-        const DURATION_SECONDS = {{ config.duration_minutes }} * 60;
-        const SECTIONS         = {{ sections_json|safe }};
-        const PENALTY_SECONDS  = {{ config.tab_switch_deduction }} * 60;
-        const CSRF_TOKEN       = '{{ csrf_token }}';
-        const SAVE_ANSWER_URL  = '{% url "exam_save_answer" %}';
-        const SAVE_FLAG_URL    = '{% url "exam_save_flag" %}';
+        const TOTAL_QUESTIONS     = {{ total_questions }};
+        const SECTIONS            = {{ sections_json|safe }};
+        const PENALTY_SECONDS     = {{ config.tab_switch_deduction }} * 60;
+        const CSRF_TOKEN          = '{{ csrf_token }}';
+        const SAVE_ANSWER_URL     = '{% url "exam_save_answer" %}';
+        const SAVE_FLAG_URL       = '{% url "exam_save_flag" %}';
+        const APPLY_PENALTY_URL   = '{% url "exam_apply_penalty" %}';
 
-        // Restored from server session
-        const SAVED_ANSWERS = {{ saved_answers_json|safe }};
-        const SAVED_FLAGGED = {{ saved_flagged_json|safe }};
-        const RESUME_INDEX  = {{ resume_index }};
+        // Server-calculated remaining seconds — always accurate after refresh
+        const SAVED_ANSWERS       = {{ saved_answers_json|safe }};
+        const SAVED_FLAGGED       = {{ saved_flagged_json|safe }};
+        const RESUME_INDEX        = {{ resume_index }};
+        const SERVER_REMAINING    = {{ remaining_seconds }};
 
-        let currentIndex   = 0;
-        let answers        = {};        // { qIndex: optionId }
-        let flagged        = new Set();
-        let highestReached = 0;         // furthest index unlocked by answering/flagging
-        let timerSeconds   = DURATION_SECONDS;
-        let timerInterval  = null;
+        let currentIndex    = 0;
+        let answers         = {};
+        let flagged         = new Set();
+        let highestReached  = 0;
+        let timerSeconds    = SERVER_REMAINING;  // always from server, never hardcoded
+        let timerInterval   = null;
         let isWarningActive = false;
 
-        // Map data-qid → 0-based index, built once
         const qidToIndex = {};
         document.querySelectorAll('.question-slide').forEach((slide, i) => {
             qidToIndex[slide.dataset.qid] = i;
         });
 
-        // ── Restore saved state from server ──────────────────────────────────
+        // ── Restore saved state ───────────────────────────────────────────────
         function restoreState() {
-            // Restore answers into JS state and check the right radios
             Object.entries(SAVED_ANSWERS).forEach(([qid, optId]) => {
                 const idx = qidToIndex[qid];
                 if (idx === undefined) return;
@@ -277,10 +276,8 @@
                 }
             });
 
-            // Restore flags
             SAVED_FLAGGED.forEach(idx => flagged.add(idx));
 
-            // Rebuild highestReached: walk forward, stop at first untouched gap
             highestReached = 0;
             for (let i = 0; i < TOTAL_QUESTIONS; i++) {
                 if (answers[i] !== undefined || flagged.has(i)) {
@@ -298,8 +295,10 @@
             setupSecurity();
         });
 
-        // ── Timer ─────────────────────────────────────────────────────────────
+        // ── Timer — no periodic saves needed, server clock handles refresh ────
         function startTimer() {
+            updateTimerDisplay(); // Show restored time immediately on load
+
             timerInterval = setInterval(() => {
                 timerSeconds--;
                 updateTimerDisplay();
@@ -331,12 +330,23 @@
         }
 
         function applyPenalty() {
+            // Deduct locally so the display updates immediately
             timerSeconds -= PENALTY_SECONDS;
             if (timerSeconds < 0) timerSeconds = 0;
             updateTimerDisplay();
+
             const el = document.getElementById('timerDisplay');
             el.classList.add('timer-penalty');
             setTimeout(() => el.classList.remove('timer-penalty'), 1000);
+
+            // Tell the server to shift exam_start_time backward by penalty amount.
+            // This means if the student refreshes, the server recalculates remaining
+            // time with the penalty already baked in — no drift, no reset.
+            fetch(APPLY_PENALTY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ penalty_seconds: PENALTY_SECONDS }),
+            }).catch(err => console.warn('Penalty save failed:', err));
         }
 
         function showSecurityModal() { document.getElementById('securityModal').classList.remove('hidden'); }
@@ -375,7 +385,7 @@
             }
         }
 
-        // Answer — saves to session, advances highestReached
+        // ── Answer ────────────────────────────────────────────────────────────
         function onAnswer(qIndex, input) {
             answers[qIndex] = input.value;
 
@@ -383,7 +393,6 @@
             slide.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected', 'ring-2', 'ring-primary'));
             input.closest('.option-label').classList.add('selected', 'ring-2', 'ring-primary');
 
-            // Answering this question unlocks the next one
             highestReached = Math.max(highestReached, Math.min(qIndex + 1, TOTAL_QUESTIONS - 1));
 
             const ind = document.getElementById('saveIndicator');
@@ -400,15 +409,30 @@
             }).catch(err => console.warn('Save answer failed:', err));
         }
 
-        // Next — requires current question to be answered or flagged
+        // ── Next — auto-clears flag if student has answered ───────────────────
         function nextQuestion() {
             if (currentIndex === TOTAL_QUESTIONS - 1) {
-                openSubmitModal();
+                // Last question: clear flag if answered, then open submit
+                if (answers[currentIndex] !== undefined && flagged.has(currentIndex)) {
+                    clearFlag(currentIndex, () => openSubmitModal());
+                } else {
+                    openSubmitModal();
+                }
                 return;
             }
-            if (answers[currentIndex] !== undefined || flagged.has(currentIndex)) {
+
+            if (answers[currentIndex] !== undefined) {
+                // Answered — auto-clear flag if present, then move forward
+                if (flagged.has(currentIndex)) {
+                    clearFlag(currentIndex, () => goToQuestion(currentIndex + 1));
+                } else {
+                    goToQuestion(currentIndex + 1);
+                }
+            } else if (flagged.has(currentIndex)) {
+                // Flagged but not answered — allow moving forward, flag stays
                 goToQuestion(currentIndex + 1);
             } else {
+                // Neither — shake card
                 const card = document.getElementById(`question${currentIndex}`)
                     .querySelector('.bg-surface-container-lowest');
                 card.classList.add('shake', 'border-error');
@@ -416,21 +440,34 @@
             }
         }
 
-        // Previous — always free
+        function clearFlag(idx, callback) {
+            flagged.delete(idx);
+            updateFlagBtn();
+            updateGrid();
+            fetch(SAVE_FLAG_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ index: idx, flagged: false }),
+            })
+            .then(() => { if (callback) callback(); })
+            .catch(err => {
+                console.warn('Clear flag failed:', err);
+                if (callback) callback();
+            });
+        }
+
         function prevQuestion() { goToQuestion(currentIndex - 1); }
 
-        // Grid — accessible up to highestReached (both forward and backward)
         function jumpToQuestion(idx) {
             if (idx <= highestReached) goToQuestion(idx);
         }
 
-        // Section nav — accessible if section start <= highestReached
         function jumpToSection(secIdx) {
             const sec = SECTIONS[secIdx];
             if (sec.start <= highestReached) goToQuestion(sec.start);
         }
 
-        // Flag — also advances highestReached, then moves forward
+        // ── Flag (manual toggle) ──────────────────────────────────────────────
         function toggleFlag() {
             const wasFlagged = flagged.has(currentIndex);
 
@@ -438,7 +475,6 @@
                 flagged.delete(currentIndex);
             } else {
                 flagged.add(currentIndex);
-                // Flagging unlocks the next question just like answering does
                 highestReached = Math.max(highestReached, Math.min(currentIndex + 1, TOTAL_QUESTIONS - 1));
             }
 
@@ -475,7 +511,6 @@
                     btn.classList.add("bg-surface-container", "text-outline");
                 }
 
-                // Any question at or before highestReached is clickable
                 const accessible = (i <= highestReached);
                 btn.disabled = !accessible;
                 if (!accessible) btn.classList.add("opacity-40", "cursor-not-allowed");
