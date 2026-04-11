@@ -9,9 +9,10 @@ urlpatterns = [
     path('signup/step-4/', views.signup_step4, name='signup_step4'),
     path('exam/instructions/', views.exam_instructions, name='exam_instructions'),
     path('exam/start/', views.exam_start, name='exam_start'),
-    path('exam/submit/', views.exam_start, name='exam_submit'),      # POST branch of exam_start
+    path('exam/submit/', views.exam_start, name='exam_submit'),
     path('exam/save-answer/', views.exam_save_answer, name='exam_save_answer'),
     path('exam/save-flag/', views.exam_save_flag, name='exam_save_flag'),
+    path('exam/apply-penalty/', views.exam_apply_penalty, name='exam_apply_penalty'),
     path('exam/result/', views.exam_result, name='exam_result'),
     path('logout/', views.logout_view, name='logout'),
 ]

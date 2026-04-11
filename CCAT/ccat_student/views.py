@@ -118,7 +118,6 @@ def login_view(request):
 
 
 def get_student(request):
-    """Helper — gets the Student profile for the logged-in user."""
     try:
         return request.user.student_profile
     except Student.DoesNotExist:
@@ -148,7 +147,6 @@ def exam_instructions(request):
         return redirect('login_view')
 
     config = ExamConfig.get_config()
-    # No is_validated filter — admin controls the question bank
     categories = Category.objects.filter(question__isnull=False).distinct()
     total_questions = Question.objects.count()
     total_sections = categories.count()
@@ -169,14 +167,15 @@ def exam_instructions(request):
 
 def _build_exam_session(request, config):
     """
-    Build the question order for the first time and store it in the session.
-    Returns (all_questions, sections) where all_questions is a list of question IDs in order.
+    Builds question/option order on first load, saves everything to session,
+    and returns start_time directly so the caller doesn't need to re-read
+    it from the session (which may not be flushed to disk yet).
     """
     categories = Category.objects.prefetch_related('question_set__options').all()
-    question_id_order = []   # list of question IDs in final order
-    option_order_map = {}    # {question_id: [option_id, ...]} — shuffled option order
-    sections = []
-    q_index = 0
+    question_id_order = []
+    option_order_map  = {}
+    sections          = []
+    q_index           = 0
 
     for cat in categories:
         qs = list(cat.question_set.all())
@@ -201,15 +200,22 @@ def _build_exam_session(request, config):
             'end': q_index - 1,
         })
 
-    # Persist to session so refresh restores the same order
+    # Capture start_time as a local variable FIRST, then write to session.
+    # We return it directly so exam_start doesn't have to re-read from session,
+    # avoiding the file-session flush timing issue that caused the timer reset bug.
+    start_time = timezone.now().timestamp()
+
     request.session['exam_question_order'] = question_id_order
-    request.session['exam_option_order'] = option_order_map
-    request.session['exam_sections'] = sections
-    request.session['exam_answers'] = {}       # {str(q_id): str(option_id)}
-    request.session['exam_flagged'] = []       # list of question indexes (0-based)
+    request.session['exam_option_order']   = option_order_map
+    request.session['exam_sections']       = sections
+    request.session['exam_answers']        = {}
+    request.session['exam_flagged']        = []
+    request.session['exam_start_time']     = start_time
     request.session.modified = True
 
-    return question_id_order, option_order_map, sections
+    # Return start_time alongside the rest so caller uses the local value,
+    # not a re-read from session which may not be persisted yet.
+    return question_id_order, option_order_map, sections, start_time
 
 
 @login_required(login_url='login_view')
@@ -222,22 +228,18 @@ def exam_start(request):
 
     # ── POST: score the exam ──────────────────────────────────────────────────
     if request.method == 'POST':
-        # Guard: prevent double submission
         if ExamResult.objects.filter(student=student).exists():
             return redirect('exam_result')
 
-        # Use the stored question order so scoring matches what was shown
         question_id_order = request.session.get('exam_question_order', [])
-
         if not question_id_order:
-            # Fallback: score all questions if session expired
             question_id_order = list(Question.objects.values_list('id', flat=True))
 
         questions = Question.objects.prefetch_related('options', 'category').filter(
             id__in=question_id_order
         )
-        total = len(question_id_order)
-        correct = 0
+        total     = len(question_id_order)
+        correct   = 0
         breakdown = {}
 
         for q in questions:
@@ -257,7 +259,7 @@ def exam_start(request):
                     pass
 
         score_pct = round((correct / total) * 100, 2) if total > 0 else 0
-        status = 'Pass' if score_pct >= 50 else 'Fail'
+        status    = 'Pass' if score_pct >= 50 else 'Fail'
 
         ExamResult.objects.create(
             student=student,
@@ -265,31 +267,46 @@ def exam_start(request):
             status=status,
         )
 
-        # Clear exam session data after submission
         for key in ['exam_question_order', 'exam_option_order', 'exam_sections',
-                    'exam_answers', 'exam_flagged']:
+                    'exam_answers', 'exam_flagged', 'exam_start_time']:
             request.session.pop(key, None)
 
-        request.session['last_exam_breakdown'] = breakdown
+        request.session['last_exam_breakdown']     = breakdown
         request.session['last_exam_total_correct'] = correct
-        request.session['last_exam_total_q'] = total
+        request.session['last_exam_total_q']       = total
         return redirect('exam_result')
 
     # ── GET: render the exam ──────────────────────────────────────────────────
-    # Check if a saved session already exists (student refreshed)
     question_id_order = request.session.get('exam_question_order')
-    option_order_map = request.session.get('exam_option_order', {})
-    sections = request.session.get('exam_sections', [])
-    saved_answers = request.session.get('exam_answers', {})
-    saved_flagged = request.session.get('exam_flagged', [])
+    option_order_map  = request.session.get('exam_option_order', {})
+    sections          = request.session.get('exam_sections', [])
+    saved_answers     = request.session.get('exam_answers', {})
+    saved_flagged     = request.session.get('exam_flagged', [])
 
     if not question_id_order:
-        # First load — build and store the order
-        question_id_order, option_order_map, sections = _build_exam_session(request, config)
+        # First load — _build_exam_session returns start_time directly.
+        # We use that value instead of re-reading from session to avoid
+        # the file-session flush timing bug.
+        question_id_order, option_order_map, sections, start_time = _build_exam_session(request, config)
         saved_answers = {}
         saved_flagged = []
+    else:
+        # Subsequent loads (refresh) — session file is already written,
+        # so reading exam_start_time is safe and correct here.
+        start_time = request.session.get('exam_start_time')
+        if start_time is None:
+            # Safety fallback: session exists but start_time missing.
+            # Treat as if exam just started (rare edge case).
+            start_time = timezone.now().timestamp()
+            request.session['exam_start_time'] = start_time
+            request.session.modified = True
 
-    # Fetch questions in the stored order
+    # Calculate remaining seconds from server clock.
+    # This always reflects reality regardless of how many times the page refreshes.
+    elapsed           = timezone.now().timestamp() - start_time
+    total_seconds     = config.duration_minutes * 60
+    remaining_seconds = max(0, total_seconds - int(elapsed))
+
     question_map = {
         q.id: q
         for q in Question.objects.prefetch_related('options').filter(id__in=question_id_order)
@@ -300,20 +317,18 @@ def exam_start(request):
         q = question_map.get(qid)
         if not q:
             continue
-        # Restore the shuffled option order
         opt_ids = option_order_map.get(str(qid), [])
         opt_map = {o.id: o for o in q.options.all()}
         q.shuffled_options = [opt_map[oid] for oid in opt_ids if oid in opt_map]
         all_questions.append(q)
 
-    # Determine the resume index: first unanswered and unflagged question
+    resume_index     = 0
+    flagged_indexes  = set(saved_flagged)
     answered_indexes = set()
-    flagged_indexes = set(saved_flagged)
     for i, q in enumerate(all_questions):
         if str(q.id) in saved_answers:
             answered_indexes.add(i)
 
-    resume_index = 0
     for i in range(len(all_questions)):
         if i in answered_indexes or i in flagged_indexes:
             resume_index = i + 1
@@ -328,29 +343,27 @@ def exam_start(request):
         'sections': sections,
         'sections_json': json.dumps(sections),
         'total_questions': len(all_questions),
-        # Pass saved state back to JS
-        'saved_answers_json': json.dumps(saved_answers),   # {str(q_id): str(opt_id)}
-        'saved_flagged_json': json.dumps(saved_flagged),   # [index, ...]
+        'saved_answers_json': json.dumps(saved_answers),
+        'saved_flagged_json': json.dumps(saved_flagged),
         'resume_index': resume_index,
+        'remaining_seconds': remaining_seconds,
     })
 
+
+# ── AJAX: save a single answer ────────────────────────────────────────────────
 
 @require_POST
 @login_required(login_url='login_view')
 def exam_save_answer(request):
-    """
-    AJAX endpoint — saves a single answer to the session.
-    Body: { question_id, option_id }
-    """
     try:
-        data = json.loads(request.body)
-        q_id = str(data.get('question_id'))
+        data   = json.loads(request.body)
+        q_id   = str(data.get('question_id'))
         opt_id = str(data.get('option_id'))
 
         if not q_id or not opt_id:
             return JsonResponse({'ok': False, 'error': 'Missing fields'}, status=400)
 
-        answers = request.session.get('exam_answers', {})
+        answers       = request.session.get('exam_answers', {})
         answers[q_id] = opt_id
         request.session['exam_answers'] = answers
         request.session.modified = True
@@ -360,16 +373,14 @@ def exam_save_answer(request):
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 
+# ── AJAX: toggle a flag ───────────────────────────────────────────────────────
+
 @require_POST
 @login_required(login_url='login_view')
 def exam_save_flag(request):
-    """
-    AJAX endpoint — toggles a flag for a question index.
-    Body: { index, flagged: true/false }
-    """
     try:
-        data = json.loads(request.body)
-        index = int(data.get('index'))
+        data       = json.loads(request.body)
+        index      = int(data.get('index'))
         is_flagged = bool(data.get('flagged'))
 
         flagged = request.session.get('exam_flagged', [])
@@ -386,10 +397,41 @@ def exam_save_flag(request):
         return JsonResponse({'ok': False, 'error': str(e)}, status=500)
 
 
+# ── AJAX: apply a tab-switch penalty ─────────────────────────────────────────
+
+@require_POST
+@login_required(login_url='login_view')
+def exam_apply_penalty(request):
+    """
+    Shifts exam_start_time backward by penalty_seconds.
+    On next page load (or refresh), the server recalculates remaining time
+    with the penalty already baked in — no periodic saves needed.
+    """
+    try:
+        data            = json.loads(request.body)
+        penalty_seconds = int(data.get('penalty_seconds', 0))
+
+        if penalty_seconds <= 0:
+            return JsonResponse({'ok': True})
+
+        start_time = request.session.get('exam_start_time')
+        if start_time is None:
+            return JsonResponse({'ok': False, 'error': 'No active exam session'}, status=400)
+
+        request.session['exam_start_time'] = start_time - penalty_seconds
+        request.session.modified = True
+
+        return JsonResponse({'ok': True})
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)}, status=500)
+
+
+# ── Result & Logout ───────────────────────────────────────────────────────────
+
 @login_required(login_url='login_view')
 def exam_result(request):
     student = get_student(request)
-    result = ExamResult.objects.filter(student=student).order_by('-date_taken').first()
+    result  = ExamResult.objects.filter(student=student).order_by('-date_taken').first()
 
     if not result:
         return redirect('exam_instructions')
