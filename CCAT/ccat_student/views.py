@@ -146,6 +146,10 @@ def exam_instructions(request):
     if not student:
         return redirect('login_view')
 
+    # Handles case where user tries to access instructions after already taking the exam.
+    if ExamResult.objects.filter(student=student).exists():
+        return redirect('exam_result')
+
     config = ExamConfig.get_config()
     categories = Category.objects.filter(question__isnull=False).distinct()
     total_questions = Question.objects.count()
@@ -265,6 +269,9 @@ def exam_start(request):
             student=student,
             score_percentage=score_pct,
             status=status,
+            total_correct=correct,  # ADD
+            total_questions=total,  # ADD
+            breakdown=breakdown,  # ADD
         )
 
         for key in ['exam_question_order', 'exam_option_order', 'exam_sections',
@@ -278,6 +285,8 @@ def exam_start(request):
 
     # ── GET: render the exam ──────────────────────────────────────────────────
     question_id_order = request.session.get('exam_question_order')
+    if ExamResult.objects.filter(student=student).exists():
+        return redirect('exam_result')
     option_order_map  = request.session.get('exam_option_order', {})
     sections          = request.session.get('exam_sections', [])
     saved_answers     = request.session.get('exam_answers', {})
@@ -431,7 +440,7 @@ def exam_apply_penalty(request):
 @login_required(login_url='login_view')
 def exam_result(request):
     student = get_student(request)
-    result  = ExamResult.objects.filter(student=student).order_by('-date_taken').first()
+    result = ExamResult.objects.filter(student=student).order_by('-date_taken').first()
 
     if not result:
         return redirect('exam_instructions')
@@ -439,9 +448,9 @@ def exam_result(request):
     context = {
         'student': student,
         'result': result,
-        'breakdown': request.session.get('last_exam_breakdown', {}),
-        'total_correct': request.session.get('last_exam_total_correct', 0),
-        'total_questions': request.session.get('last_exam_total_q', 0),
+        'breakdown': result.breakdown,
+        'total_correct': result.total_correct,
+        'total_questions': result.total_questions,
     }
     return render(request, 'ccat_student/exam_result.html', context)
 
