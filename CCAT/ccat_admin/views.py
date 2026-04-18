@@ -71,7 +71,12 @@ def question_management(request):
 
     # GET logic: select_related for category and prefetch_related for options
     # This prevents the "N+1" problem so your table loads fast
-    questions = Question.objects.select_related('category').prefetch_related('options').all().order_by('-created_at')
+    questions_list = Question.objects.select_related('category').prefetch_related('options').all().order_by(
+        '-created_at')
+    paginator = Paginator(questions_list, 20)  # 20 questions per page
+    page_number = request.GET.get('page')
+    questions = paginator.get_page(page_number)
+
     categories = Category.objects.all()
 
     return render(request, 'ccat_admin/question_management.html', {
