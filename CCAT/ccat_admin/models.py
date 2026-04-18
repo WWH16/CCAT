@@ -4,23 +4,6 @@ from django.core.exceptions import ValidationError
 import uuid
 from django.utils import timezone
 
-
-class AdminProfile(models.Model):
-    ROLE_CHOICES = [
-        ('REGISTRAR', 'Registrar'),
-        ('DEPT_HEAD', 'Department Head'),
-        ('SYSTEM_ADMIN', 'System Administrator'),
-    ]
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='SYSTEM_ADMIN')
-    employee_id = models.CharField(max_length=20, unique=True)
-    campus = models.CharField(max_length=100, default="ISU Palanan Extension Campus")
-
-    def __str__(self):
-        return f"{self.user.username} - {self.role}"
-
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
 

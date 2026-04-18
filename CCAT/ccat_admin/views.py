@@ -226,23 +226,11 @@ def revoke_key(request, key_id):
     key.save()
     return redirect('access_keys')
 
-
-# ── Helper ────────────────────────────────────────────────────────────────────
-
-def get_admin(request):
-    """Returns the AdminProfile for the logged-in user, or None."""
-    try:
-        return request.user.adminprofile
-    except Exception:
-        return None
-
-
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
-    admin = get_admin(request)
-    if not admin:
+    if not request.user.is_staff:
         return redirect('admin_login')
 
     # ── Stat card counts ──────────────────────────────────────────────────────
@@ -274,7 +262,6 @@ def admin_dashboard(request):
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'admin': admin,
         'total_students': total_students,
         'total_examinees': total_examinees,
         'passed_count': passed_count,
@@ -293,8 +280,7 @@ def admin_dashboard(request):
 @login_required(login_url='admin_login')
 def admin_export_csv(request):
     """Export ALL exam results as a CSV file (ignores search/filter)."""
-    admin = get_admin(request)
-    if not admin:
+    if not request.user.is_staff:
         return redirect('admin_login')
 
     response = HttpResponse(content_type='text/csv')
