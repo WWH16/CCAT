@@ -317,18 +317,23 @@
     }
 
     // ── Add modal layouts
-    function switchLayout(selectedType) {
-        document.getElementById('mcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
-        document.getElementById('tfLayout').classList.toggle('hidden', selectedType === 'MCQ');
-        document.getElementById('addAnswerError').classList.add('hidden');
-    }
+function switchLayout(selectedType) {
+    document.getElementById('mcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
+    document.getElementById('tfLayout').classList.toggle('hidden', selectedType === 'MCQ');
+    document.getElementById('addAnswerError').classList.add('hidden');
+    document.getElementById('mcqLayout').querySelectorAll('.flex.items-center').forEach(r => r.classList.remove('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl'));
+    document.getElementById('tfLayout').querySelectorAll('label').forEach(l => l.classList.remove('bg-error/10', 'ring-1', 'ring-error'));
+}
+
 
     // ── Edit modal layouts
-    function switchEditLayout(selectedType) {
-        document.getElementById('editMcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
-        document.getElementById('editTfLayout').classList.toggle('hidden', selectedType === 'MCQ');
-        document.getElementById('editAnswerError').classList.add('hidden');
-    }
+function switchEditLayout(selectedType) {
+    document.getElementById('editMcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
+    document.getElementById('editTfLayout').classList.toggle('hidden', selectedType === 'MCQ');
+    document.getElementById('editAnswerError').classList.add('hidden');
+    document.getElementById('editMcqLayout').querySelectorAll('.flex.items-center').forEach(r => r.classList.remove('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl'));
+    document.getElementById('editTfLayout').querySelectorAll('label').forEach(l => l.classList.remove('bg-error/10', 'ring-1', 'ring-error'));
+}
 
     // ── Open Edit Modal
     function openEditModal(questionId, questionText, questionType, categoryName, btn) {
@@ -415,9 +420,23 @@ function validateAnswer(form) {
     const errorId = form.id === 'editForm' ? 'editAnswerError' : 'addAnswerError';
     const errorEl = document.getElementById(errorId);
 
+    // Clear previous highlights
+    const mcqId = form.id === 'editForm' ? 'editMcqLayout' : 'mcqLayout';
+    const tfId  = form.id === 'editForm' ? 'editTfLayout'  : 'tfLayout';
+    document.getElementById(mcqId).querySelectorAll('.flex.items-center').forEach(row => {
+        row.classList.remove('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl');
+    });
+    document.getElementById(tfId).querySelectorAll('label').forEach(label => {
+        label.classList.remove('bg-error/10', 'ring-1', 'ring-error');
+    });
+
     if (type === 'MCQ') {
         const selected = form.querySelector('input[name="correct_option"]:checked');
         if (!selected) {
+            // Highlight all MCQ radio rows in red
+            document.getElementById(mcqId).querySelectorAll('.flex.items-center').forEach(row => {
+                row.classList.add('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl');
+            });
             errorEl.classList.remove('hidden');
             errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return false;
@@ -425,11 +444,16 @@ function validateAnswer(form) {
     } else {
         const selected = form.querySelector('input[name="correct_tf"]:checked');
         if (!selected) {
+            // Highlight both T/F labels in red
+            document.getElementById(tfId).querySelectorAll('label').forEach(label => {
+                label.classList.add('bg-error/10', 'ring-1', 'ring-error');
+            });
             errorEl.classList.remove('hidden');
             errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return false;
         }
     }
+
     errorEl.classList.add('hidden');
     return true;
 }
