@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime # Add this import at the top
 from django.core.paginator import Paginator
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max
 from django.http import JsonResponse
 
 
@@ -41,9 +41,12 @@ def question_management(request):
 
         category = get_object_or_404(Category, id=cat_id)
 
-        # Logic for custom ID (e.g., MATH-2026-001)
-        count = Question.objects.filter(category=category).count() + 1
-        custom_id = f"{category.name[:4].upper()}-2026-{count:03d}"
+        # Logic for custom ID (e.g., MATH-001) — safe against deletions and Django admin inserts
+        prefix = category.name[:4].upper()
+        existing = Question.objects.filter(custom_id__startswith=f"{prefix}-").aggregate(Max('custom_id'))[
+            'custom_id__max']
+        last_num = int(existing.split('-')[-1]) if existing else 0
+        custom_id = f"{prefix}-{last_num + 1:03d}"
 
         new_q = Question.objects.create(
             question_text=q_text,
