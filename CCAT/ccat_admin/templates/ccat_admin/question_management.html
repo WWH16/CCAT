@@ -189,7 +189,7 @@
         </div>
 
         <div class="px-8 py-6 bg-surface-container-low border-t border-outline-variant/10 flex items-center justify-end gap-3 rounded-b-2xl">
-            <button type="button" onclick="toggleModal('questionModal', false)" class="px-6 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-md">Cancel</button>
+            <button type="button" onclick="toggleModal('questionModal', false); resetAddModal()" class="px-6 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-md">Cancel</button>
             <button type="submit" class="px-8 py-2.5 text-sm font-semibold bg-primary text-on-primary rounded-md shadow-lg hover:opacity-90 transition-all">Save Question</button>
         </div>
     </form>
@@ -578,6 +578,13 @@ async function deleteCategory(id, name) {
     // Remove from both dropdowns
     document.querySelectorAll(`#categorySelect option[value="${id}"], #editCategory option[value="${id}"]`)
         .forEach(o => o.remove());
+}
+function resetAddModal() {
+    document.querySelector('#questionModal textarea[name="text"]').value = '';
+    document.querySelectorAll('#questionModal input[type="text"]').forEach(i => i.value = '');
+    document.querySelectorAll('#questionModal input[type="radio"]').forEach(r => r.checked = false);
+    document.querySelector('#questionModal select[name="question_type"]').value = 'MCQ';
+    switchLayout('MCQ');
 }
 </script>
 {% endblock %}
