@@ -20,4 +20,8 @@ urlpatterns = [
 
     # CSV export — always exports all results regardless of filter
     path('export/csv/', views.admin_export_csv, name='admin_export_csv'),
+
+    # Category management
+    path('categories/add/', views.category_add, name='category_add'),
+    path('categories/<int:category_id>/delete/', views.category_delete, name='category_delete'),
 ]

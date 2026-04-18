@@ -129,21 +129,27 @@
         <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6 no-scrollbar">
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1.5">
-                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Category</label>
-                    <select name="category" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
-                        {% for cat in categories %}
-                            <option value="{{ cat.id }}">{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="flex items-center justify-between">
+                        <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Category</label>
+                        <button type="button" onclick="toggleModal('categoryModal', true)"
+                                class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline">
+                            <span class="material-symbols-outlined text-sm">edit</span> Manage
+                        </button>
+                    </div>
+    <select name="category" id="categorySelect" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Type</label>
+                        <select name="question_type" onchange="switchLayout(this.value)" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
+                            <option value="MCQ">Multiple Choice</option>
+                            <option value="SS">True / False</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="space-y-1.5">
-                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Type</label>
-                    <select name="question_type" onchange="switchLayout(this.value)" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
-                        <option value="MCQ">Multiple Choice</option>
-                        <option value="SS">True / False</option>
-                    </select>
-                </div>
-            </div>
 
             <div class="space-y-1.5">
                 <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Text</label>
@@ -299,7 +305,52 @@
         </div>
     </form>
 </div>
+<!-- ─── CATEGORY MANAGEMENT MODAL ─── -->
+<div id="categoryModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="toggleModal('categoryModal', false)"></div>
+    <div class="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
 
+        <div class="px-6 py-5 border-b border-outline-variant/10 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-on-surface">Manage Categories</h2>
+                <p class="text-xs text-on-surface-variant mt-0.5">Add or remove exam categories.</p>
+            </div>
+            <button type="button" onclick="toggleModal('categoryModal', false)"
+                    class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 border-b border-outline-variant/10">
+            <div class="flex gap-2">
+                <input id="newCategoryInput" type="text" placeholder="New category name..."
+                       class="flex-1 bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary"/>
+                <button type="button" onclick="addCategory()"
+                        class="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:opacity-90 transition-all flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">add</span> Add
+                </button>
+            </div>
+            <p id="categoryError" class="hidden text-error text-xs font-bold mt-2 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>
+                <span id="categoryErrorText"></span>
+            </p>
+        </div>
+
+        <ul id="categoryList" class="flex-1 overflow-y-auto divide-y divide-surface-container px-6 py-2">
+            {% for cat in categories %}
+            <li class="flex items-center justify-between py-3" id="cat-item-{{ cat.id }}">
+                <span class="text-sm font-semibold text-on-surface">{{ cat.name }}</span>
+                <button type="button" onclick="deleteCategory({{ cat.id }}, '{{ cat.name|escapejs }}')"
+                        class="p-1.5 hover:bg-error/10 text-error rounded-lg transition-colors">
+                    <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+            </li>
+            {% empty %}
+            <li class="py-6 text-center text-outline italic text-sm" id="emptyCategoryMsg">No categories yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
 {% endblock %}
 
 
@@ -456,6 +507,77 @@ function validateAnswer(form) {
 
     errorEl.classList.add('hidden');
     return true;
+}
+
+async function addCategory() {
+    const input = document.getElementById('newCategoryInput');
+    const errorEl = document.getElementById('categoryError');
+    const errorText = document.getElementById('categoryErrorText');
+    const name = input.value.trim();
+
+    if (!name) {
+        errorText.textContent = 'Please enter a category name.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    const res = await fetch("{% url 'category_add' %}", { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!data.ok) {
+        errorText.textContent = data.error;
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    errorEl.classList.add('hidden');
+    input.value = '';
+
+    // Remove empty message if present
+    const emptyMsg = document.getElementById('emptyCategoryMsg');
+    if (emptyMsg) emptyMsg.remove();
+
+    // Add to category list in modal
+    const list = document.getElementById('categoryList');
+    list.insertAdjacentHTML('beforeend', `
+        <li class="flex items-center justify-between py-3" id="cat-item-${data.id}">
+            <span class="text-sm font-semibold text-on-surface">${data.name}</span>
+            <button type="button" onclick="deleteCategory(${data.id}, '${data.name}')"
+                    class="p-1.5 hover:bg-error/10 text-error rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-base">delete</span>
+            </button>
+        </li>
+    `);
+
+    // Add to both category dropdowns
+    const option = `<option value="${data.id}">${data.name}</option>`;
+    document.getElementById('categorySelect').insertAdjacentHTML('beforeend', option);
+    document.getElementById('editCategory').insertAdjacentHTML('beforeend',
+        `<option value="${data.id}" data-name="${data.name}">${data.name}</option>`);
+}
+
+async function deleteCategory(id, name) {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    const res = await fetch(`/categories/${id}/delete/`, { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!data.ok) {
+        alert(data.error);
+        return;
+    }
+
+    // Remove from modal list
+    document.getElementById(`cat-item-${id}`)?.remove();
+
+    // Remove from both dropdowns
+    document.querySelectorAll(`#categorySelect option[value="${id}"], #editCategory option[value="${id}"]`)
+        .forEach(o => o.remove());
 }
 </script>
 {% endblock %}

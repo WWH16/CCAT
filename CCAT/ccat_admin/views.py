@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime # Add this import at the top
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
+from django.http import JsonResponse
 
 
 # --- Authentication Views ---
@@ -341,3 +342,26 @@ def admin_export_csv(request):
         ])
 
     return response
+
+@login_required(login_url='admin_login')
+def category_add(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if not name:
+            return JsonResponse({'ok': False, 'error': 'Category name is required.'})
+        if Category.objects.filter(name__iexact=name).exists():
+            return JsonResponse({'ok': False, 'error': 'Category already exists.'})
+        cat = Category.objects.create(name=name)
+        return JsonResponse({'ok': True, 'id': cat.id, 'name': cat.name})
+    return JsonResponse({'ok': False, 'error': 'Invalid request.'})
+
+
+@login_required(login_url='admin_login')
+def category_delete(request, category_id):
+    if request.method == 'POST':
+        cat = get_object_or_404(Category, id=category_id)
+        if cat.question_set.exists():
+            return JsonResponse({'ok': False, 'error': f'Cannot delete — "{cat.name}" has existing questions.'})
+        cat.delete()
+        return JsonResponse({'ok': True})
+    return JsonResponse({'ok': False, 'error': 'Invalid request.'})
