@@ -112,50 +112,93 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-container">
-                {% for key in session_keys %}
-                <tr class="hover:bg-surface-container-low transition-colors group">
-                    <td class="px-6 py-4">
-                        <p class="font-bold text-on-surface">{{ key.session_name }}</p>
-                        <p class="text-[10px] text-outline">Capacity: {{ key.used_count }}/{{ key.capacity }} Students</p>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-2 font-mono text-sm bg-surface-container-high rounded px-3 py-1 w-fit border border-outline-variant/20">
-                            <span class="text-primary font-bold">{{ key.key_code }}</span>
+            {% for key in page_obj %}
+            <tr class="hover:bg-surface-container-low transition-colors group">
+                <td class="px-6 py-4">
+                    <p class="font-bold text-on-surface">{{ key.session_name }}</p>
+                    <p class="text-[10px] text-outline">Capacity: {{ key.used_count }}/{{ key.capacity }} Students</p>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-2 font-mono text-sm bg-surface-container-high rounded px-3 py-1 w-fit border border-outline-variant/20">
+                        <span class="text-primary font-bold">{{ key.key_code }}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    {% with s=key.status %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold
+                        {% if s == 'Active' %}bg-green-100 text-green-700
+                        {% elif s == 'Expired' %}bg-amber-100 text-amber-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ s }}
+                    </span>
+                    {% endwith %}
+                    <p class="text-[9px] text-outline mt-1">{{ key.expiry_date|date:"M d, h:i A" }}</p>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    {% if key.is_active and key.status == 'Active' %}
+                        <button type="button"
+                                onclick="showRevokeModal('{{ key.session_name }}', '{% url 'revoke_key' key.id %}')"
+                                class="p-2 rounded-lg hover:bg-error/10 text-error transition-colors">
+                            <span class="material-symbols-outlined text-lg">block</span>
+                        </button>
+                    {% else %}
+                        <div class="flex items-center justify-end gap-1 text-outline opacity-50">
+                            <span class="text-[9px] font-bold uppercase">Closed</span>
+                            <span class="material-symbols-outlined text-base">lock</span>
                         </div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        {% with s=key.status %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold
-                            {% if s == 'Active' %}bg-green-100 text-green-700
-                            {% elif s == 'Expired' %}bg-amber-100 text-amber-700
-                            {% else %}bg-red-100 text-red-700{% endif %}">
-                            {{ s }}
-                        </span>
-                        {% endwith %}
-                        <p class="text-[9px] text-outline mt-1">{{ key.expiry_date|date:"M d, h:i A" }}</p>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        {% if key.is_active and key.status == 'Active' %}
-                            <button type="button"
-                                    onclick="showRevokeModal('{{ key.session_name }}', '{% url 'revoke_key' key.id %}')"
-                                    class="p-2 rounded-lg hover:bg-error/10 text-error transition-colors">
-                                <span class="material-symbols-outlined text-lg">block</span>
-                            </button>
-                        {% else %}
-                            <div class="flex items-center justify-end gap-1 text-outline opacity-50">
-                                <span class="text-[9px] font-bold uppercase">Closed</span>
-                                <span class="material-symbols-outlined text-base">lock</span>
-                            </div>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="px-6 py-12 text-center text-outline italic text-sm">No session keys have been generated yet.</td>
-                </tr>
-                {% endfor %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-6 py-12 text-center text-outline italic text-sm">No session keys have been generated yet.</td>
+            </tr>
+            {% endfor %}
             </tbody>
-        </table>
+            </table>
+
+            <!-- Pagination Controls -->
+            {% if page_obj.has_other_pages %}
+            <div class="flex items-center justify-between mt-6 px-2">
+                <div class="text-sm text-outline">
+                    Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}"
+                       class="px-4 py-2 rounded-lg border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">chevron_left</span> Previous
+                    </a>
+                    {% else %}
+                    <span class="px-4 py-2 rounded-lg border border-outline-variant/30 text-outline/50 text-sm font-medium flex items-center gap-1 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-base">chevron_left</span> Previous
+                    </span>
+                    {% endif %}
+
+                    <div class="flex items-center gap-1">
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white text-sm font-bold">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}"
+                               class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container text-sm font-medium transition-colors">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}"
+                       class="px-4 py-2 rounded-lg border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-1">
+                        Next <span class="material-symbols-outlined text-base">chevron_right</span>
+                    </a>
+                    {% else %}
+                    <span class="px-4 py-2 rounded-lg border border-outline-variant/30 text-outline/50 text-sm font-medium flex items-center gap-1 cursor-not-allowed">
+                        Next <span class="material-symbols-outlined text-base">chevron_right</span>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
     </div>
 </section>
 

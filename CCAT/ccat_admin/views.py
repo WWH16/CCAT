@@ -195,13 +195,18 @@ def generate_random_key():
 
 
 @login_required(login_url='admin_login')
+@login_required(login_url='admin_login')
 def access_keys(request):
-    keys = SessionKey.objects.all()
+    keys_list = SessionKey.objects.all().order_by('-created_at')
+    paginator = Paginator(keys_list, 20)  # 20 keys per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     # Check if any key is currently active to show/hide the yellow alert
-    active_exists = keys.filter(is_active=True).exists()
+    active_exists = SessionKey.objects.filter(is_active=True).exists()
 
     return render(request, 'ccat_admin/access_keys.html', {
-        'session_keys': keys,
+        'page_obj': page_obj,
         'active_exists': active_exists
     })
 
