@@ -113,7 +113,7 @@
 <div id="questionModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
     <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="toggleModal('questionModal', false)"></div>
 
-    <form method="POST" action="{% url 'question_management' %}" class="relative bg-surface-container-lowest w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+    <form method="POST" action="{% url 'question_management' %}" onsubmit="return validateAnswer(this)" class="relative bg-surface-container-lowest w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {% csrf_token %}
 
         <div class="px-8 py-6 border-b border-outline-variant/10 flex items-center justify-between">
@@ -176,6 +176,10 @@
                     </label>
                 </div>
             </div>
+            <p id="addAnswerError" class="hidden text-error text-xs font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>
+                Please select the correct answer before saving.
+            </p>
         </div>
 
         <div class="px-8 py-6 bg-surface-container-low border-t border-outline-variant/10 flex items-center justify-end gap-3 rounded-b-2xl">
@@ -190,7 +194,7 @@
 <div id="editModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
     <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="toggleModal('editModal', false)"></div>
 
-    <form method="POST" id="editForm" action="" class="relative bg-surface-container-lowest w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+    <form method="POST" id="editForm" action="" onsubmit="return validateAnswer(this)" class="relative bg-surface-container-lowest w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {% csrf_token %}
         <input type="hidden" name="_method" value="PUT">
 
@@ -254,6 +258,10 @@
                     </label>
                 </div>
             </div>
+            <p id="editAnswerError" class="hidden text-error text-xs font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>
+                Please select the correct answer before saving.
+            </p>
         </div>
 
         <div class="px-8 py-6 bg-surface-container-low border-t border-outline-variant/10 flex items-center justify-end gap-3 rounded-b-2xl">
@@ -312,12 +320,14 @@
     function switchLayout(selectedType) {
         document.getElementById('mcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
         document.getElementById('tfLayout').classList.toggle('hidden', selectedType === 'MCQ');
+        document.getElementById('addAnswerError').classList.add('hidden');
     }
 
     // ── Edit modal layouts
     function switchEditLayout(selectedType) {
         document.getElementById('editMcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
         document.getElementById('editTfLayout').classList.toggle('hidden', selectedType === 'MCQ');
+        document.getElementById('editAnswerError').classList.add('hidden');
     }
 
     // ── Open Edit Modal
@@ -400,5 +410,28 @@
             row.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
         });
     }
+function validateAnswer(form) {
+    const type = form.querySelector('[name="question_type"]').value;
+    const errorId = form.id === 'editForm' ? 'editAnswerError' : 'addAnswerError';
+    const errorEl = document.getElementById(errorId);
+
+    if (type === 'MCQ') {
+        const selected = form.querySelector('input[name="correct_option"]:checked');
+        if (!selected) {
+            errorEl.classList.remove('hidden');
+            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+    } else {
+        const selected = form.querySelector('input[name="correct_tf"]:checked');
+        if (!selected) {
+            errorEl.classList.remove('hidden');
+            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+    }
+    errorEl.classList.add('hidden');
+    return true;
+}
 </script>
 {% endblock %}
