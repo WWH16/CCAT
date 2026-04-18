@@ -39,6 +39,13 @@ def question_management(request):
         cat_id = request.POST.get('category')
         q_type = request.POST.get('question_type')
 
+        # Validate correct answer before saving
+        correct_letter = request.POST.get('correct_option')
+        if q_type == 'MCQ' and (not correct_letter or not request.POST.get(f'option_{correct_letter}', '').strip()):
+            return redirect('question_management')
+        if q_type == 'SS' and not request.POST.get('correct_tf'):
+            return redirect('question_management')
+
         category = get_object_or_404(Category, id=cat_id)
 
         # Logic for custom ID (e.g., MATH-001) — safe against deletions and Django admin inserts
@@ -81,7 +88,8 @@ def question_management(request):
 
     return render(request, 'ccat_admin/question_management.html', {
         'questions': questions,
-        'categories': categories
+        'categories': categories,
+        'total_questions': Question.objects.count(),
     })
 
 
@@ -194,7 +202,6 @@ def generate_random_key():
             return code
 
 
-@login_required(login_url='admin_login')
 @login_required(login_url='admin_login')
 def access_keys(request):
     keys_list = SessionKey.objects.all().order_by('-created_at')

@@ -40,7 +40,7 @@
     </select>
 
     <div class="ml-auto text-xs font-bold text-outline uppercase tracking-widest">
-        Total: {{ questions.count }} Questions
+        Total: {{ total_questions }} Questions
     </div>
 </div>
 
@@ -163,7 +163,7 @@
                 <h2 class="text-xl font-bold text-on-surface">Add New Question</h2>
                 <p class="text-xs text-on-surface-variant font-medium mt-1">Fill in the details to expand the question library.</p>
             </div>
-            <button type="button" onclick="toggleModal('questionModal', false)" class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
+            <button type="button" onclick="toggleModal('questionModal', false); resetAddModal()" class="p-2 hover:bg-surface-container-high rounded-full transition-colors text-on-surface-variant">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -525,7 +525,12 @@ function validateAnswer(form) {
 
     if (type === 'MCQ') {
         const selected = form.querySelector('input[name="correct_option"]:checked');
-        if (!selected) {
+        const selectedLetter = selected?.value;
+        const selectedInput = selectedLetter
+            ? form.querySelector(`input[name="option_${selectedLetter}"]`)
+            : null;
+
+        if (!selected || !selectedInput?.value.trim()) {
             // Highlight all MCQ radio rows in red
             document.getElementById(mcqId).querySelectorAll('.flex.items-center').forEach(row => {
                 row.classList.add('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl');
