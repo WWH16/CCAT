@@ -22,7 +22,11 @@ class AdminProfile(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)  # e.g., Mathematics, English
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        # This fixes the display in the Django Admin sidebar
+        verbose_name_plural = "Categories"
 
     def __str__(self):
         return self.name
