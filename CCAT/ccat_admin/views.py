@@ -250,7 +250,8 @@ def admin_dashboard(request):
     total_examinees = ExamResult.objects.values('student').distinct().count()
     passed_count = ExamResult.objects.filter(status='Pass').count()
     failed_count = ExamResult.objects.filter(status='Fail').count()
-    active_session = SessionKey.objects.filter(is_active=True).first()
+    # Get the currently active session key (if revoked or expired) to show in the admin panel
+    active_session = SessionKey.objects.filter(is_active=True,expiry_date__gt=timezone.now()).first()
 
     # ── Search & filter ───────────────────────────────────────────────────────
     search = request.GET.get('search', '').strip()
