@@ -1,4 +1,8 @@
- function toggleModal(modalId, show) {
+    function getCSRFToken() {
+        const cookieValue = document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop();
+        return cookieValue;
+    }
+    function toggleModal(modalId, show) {
         const modal = document.getElementById(modalId);
         if (show) {
             modal.classList.remove('hidden');
@@ -170,9 +174,9 @@ async function addCategory() {
 
     const formData = new FormData();
     formData.append('name', name);
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
 
-    const res = await fetch("{% url 'category_add' %}", { method: 'POST', body: formData });
+    const res = await fetch('/categories/add/', { method: 'POST', body: formData });
     const data = await res.json();
 
     if (!data.ok) {
@@ -209,7 +213,7 @@ async function addCategory() {
 
 async function deleteCategory(id, name) {
     const formData = new FormData();
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('csrfmiddlewaretoken', getCSRFToken());
 
     const res = await fetch(`/categories/${id}/delete/`, { method: 'POST', body: formData });
     const data = await res.json();
