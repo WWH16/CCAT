@@ -10,6 +10,7 @@
     <link rel="icon" type="image/jpeg" href="{% static 'images/isu_logo.png' %}">
     <link href="{% static 'css/font.css' %}" rel="stylesheet" />
     <link href="{% static 'css/material-symbols.css' %}" rel="stylesheet" />
+    <meta name="csrf-token" content="{{ csrf_token }}">
 
     <script id="tailwind-config">
         tailwind.config = {
@@ -177,17 +178,6 @@
     </div>
 </div>
 
-<script>
-    function toggleLogoutModal(show) {
-        const modal = document.getElementById('logoutModal');
-        if (show) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        } else {
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-    }
-</script>
+<script src="{% static 'ccat_admin/js/base.js' %}"></script>
 </body>
 </html>
