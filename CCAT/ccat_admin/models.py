@@ -25,7 +25,6 @@ class Question(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     question_type = models.CharField(max_length=5, choices=TYPE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_validated = models.BooleanField(default=False)
 
     # The ID format you used in your UI (e.g., MATH-2024-001)
     custom_id = models.CharField(max_length=50, unique=True)
