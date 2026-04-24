@@ -95,51 +95,49 @@
         const type = document.getElementById('formTypeInput').value;
         const errorEl = document.getElementById('addAnswerError');
         const errorMsg = document.getElementById('errorMsgText');
-        
+        const saveBtn = form.querySelector('button[type="submit"]');
+
         if (type === 'abstract') {
-            // Validate Abstract
             const qImg = document.getElementById('abstractQuestionImage').files.length > 0;
             const correct = document.getElementById('abstractCorrectSelect').value;
-            
+
             if (!qImg) {
                 errorMsg.innerText = "Please upload a question image.";
-                errorEl.classList.remove('hidden');
+                showError(errorEl, saveBtn);
                 return false;
             }
             if (!correct) {
                 errorMsg.innerText = "Please select the correct answer.";
-                errorEl.classList.remove('hidden');
+                showError(errorEl, saveBtn);
                 return false;
             }
-            // Ensure all option images are uploaded
             for (let i = 1; i <= abstractOptionCount; i++) {
                 const fileInput = document.getElementById(`opt_img_input_${i}`);
                 if (fileInput && fileInput.files.length === 0) {
                     errorMsg.innerText = `Please upload image for Option ${i}.`;
-                    errorEl.classList.remove('hidden');
+                    showError(errorEl, saveBtn);
                     return false;
                 }
             }
         } else {
-            // Validate Standard
             const qType = document.getElementById('qTypeSelect').value;
             if (qType === 'MCQ') {
                 const correct = form.querySelector('input[name="correct_option"]:checked');
                 if (!correct) {
                     errorMsg.innerText = "Please select the correct MCQ option.";
-                    errorEl.classList.remove('hidden');
+                    showError(errorEl, saveBtn);
                     return false;
                 }
             } else {
                 const correct = form.querySelector('input[name="correct_tf"]:checked');
                 if (!correct) {
                     errorMsg.innerText = "Please select True or False.";
-                    errorEl.classList.remove('hidden');
+                    showError(errorEl, saveBtn);
                     return false;
                 }
             }
         }
-        
+
         errorEl.classList.add('hidden');
         return true;
     }
