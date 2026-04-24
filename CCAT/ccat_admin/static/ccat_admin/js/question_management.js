@@ -25,7 +25,7 @@
     function checkCategory(select) {
         const catName = select.options[select.selectedIndex].text.toLowerCase();
         const isAbstract = catName.includes('abstract');
-        
+
         const formTypeInput = document.getElementById('formTypeInput');
         const qTypeWrapper = document.getElementById('qTypeWrapper');
         const standardTextWrapper = document.getElementById('standardTextWrapper');
@@ -34,31 +34,41 @@
         const tfLayout = document.getElementById('tfLayout');
         const abstractOptionsLayout = document.getElementById('abstractOptionsLayout');
         const modalTitle = document.getElementById('modalTitle');
+        const questionTextarea = document.getElementById('questionTextarea');
 
         if (isAbstract) {
             formTypeInput.value = 'abstract';
             modalTitle.innerText = 'Add Abstract Reasoning Question';
-            
+
             // Show Abstract fields
             abstractImageWrapper.classList.remove('hidden');
             abstractOptionsLayout.classList.remove('hidden');
-            
+
             // Hide Standard fields
             qTypeWrapper.classList.add('hidden');
             standardTextWrapper.classList.add('hidden');
             mcqLayout.classList.add('hidden');
             tfLayout.classList.add('hidden');
-            
+
+            // Clear and disable text field
+            questionTextarea.value = '';
+            questionTextarea.disabled = true;
+
+
+
             rebuildAbstractOptions();
         } else {
             formTypeInput.value = 'standard';
             modalTitle.innerText = 'Add New Question';
-            
+
             // Show Standard fields
             qTypeWrapper.classList.remove('hidden');
             standardTextWrapper.classList.remove('hidden');
-            switchLayout(document.getElementById('qTypeSelect').value); // Show MCQ or TF
-            
+            switchLayout(document.getElementById('qTypeSelect').value);
+
+            // RE-ENABLE the textarea
+            questionTextarea.disabled = false;
+
             // Hide Abstract fields
             abstractImageWrapper.classList.add('hidden');
             abstractOptionsLayout.classList.add('hidden');

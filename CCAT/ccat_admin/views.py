@@ -103,10 +103,11 @@ def _handle_standard_question(request, category):
 
     return redirect('question_management')
 
+
 def _handle_abstract_question(request, category):
-    q_text   = request.POST.get('text', '')          # optional for abstract
-    q_type   = 'MCQ'
-    correct  = request.POST.get('correct_option')    # "1", "2", etc.
+    q_type = 'MCQ'
+
+    correct = request.POST.get('abstract_correct_option')
 
     # Generate custom ID
     prefix = category.name[:4].upper()
@@ -116,9 +117,8 @@ def _handle_abstract_question(request, category):
     last_num = int(existing.split('-')[-1]) if existing else 0
     custom_id = f"{prefix}-{last_num + 1:03d}"
 
-    # Save question with optional image
     new_q = Question.objects.create(
-        question_text=q_text or f"Abstract Reasoning Question {custom_id}",
+        question_text=f"Abstract Reasoning Question {custom_id}",
         category=category,
         question_type=q_type,
         custom_id=custom_id,
@@ -132,7 +132,7 @@ def _handle_abstract_question(request, category):
             is_correct = (str(i) == correct)
             Option.objects.create(
                 question=new_q,
-                option_text=f"Option {i}",   # fallback text label
+                option_text=f"Option {i}",  # fallback text label
                 option_image=img,
                 is_correct=is_correct,
             )
