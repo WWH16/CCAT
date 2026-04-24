@@ -1,7 +1,14 @@
+    // Global variables for abstract reasoning
+    let abstractOptionCount = 8;
+
     function getCSRFToken() {
-        const cookieValue = document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop();
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
         return cookieValue;
     }
+
     function toggleModal(modalId, show) {
         const modal = document.getElementById(modalId);
         if (show) {
@@ -13,331 +20,344 @@
         }
     }
 
-    // ── Add modal layouts
-function switchLayout(selectedType) {
-    document.getElementById('mcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
-    document.getElementById('tfLayout').classList.toggle('hidden', selectedType === 'MCQ');
-    document.getElementById('addAnswerError').classList.add('hidden');
-    document.getElementById('mcqLayout').querySelectorAll('.flex.items-center').forEach(r => r.classList.remove('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl'));
-    document.getElementById('tfLayout').querySelectorAll('label').forEach(l => l.classList.remove('bg-error/10', 'ring-1', 'ring-error'));
-}
+    // --- Integrated Question Management Logic ---
 
+    function checkCategory(select) {
+        const catName = select.options[select.selectedIndex].text.toLowerCase();
+        const isAbstract = catName.includes('abstract');
+        
+        const formTypeInput = document.getElementById('formTypeInput');
+        const qTypeWrapper = document.getElementById('qTypeWrapper');
+        const standardTextWrapper = document.getElementById('standardTextWrapper');
+        const abstractImageWrapper = document.getElementById('abstractImageWrapper');
+        const mcqLayout = document.getElementById('mcqLayout');
+        const tfLayout = document.getElementById('tfLayout');
+        const abstractOptionsLayout = document.getElementById('abstractOptionsLayout');
+        const modalTitle = document.getElementById('modalTitle');
 
-    // ── Edit modal layouts
-function switchEditLayout(selectedType) {
-    document.getElementById('editMcqLayout').classList.toggle('hidden', selectedType !== 'MCQ');
-    document.getElementById('editTfLayout').classList.toggle('hidden', selectedType === 'MCQ');
-    document.getElementById('editAnswerError').classList.add('hidden');
-    document.getElementById('editMcqLayout').querySelectorAll('.flex.items-center').forEach(r => r.classList.remove('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl'));
-    document.getElementById('editTfLayout').querySelectorAll('label').forEach(l => l.classList.remove('bg-error/10', 'ring-1', 'ring-error'));
-}
+        if (isAbstract) {
+            formTypeInput.value = 'abstract';
+            modalTitle.innerText = 'Add Abstract Reasoning Question';
+            
+            // Show Abstract fields
+            abstractImageWrapper.classList.remove('hidden');
+            abstractOptionsLayout.classList.remove('hidden');
+            
+            // Hide Standard fields
+            qTypeWrapper.classList.add('hidden');
+            standardTextWrapper.classList.add('hidden');
+            mcqLayout.classList.add('hidden');
+            tfLayout.classList.add('hidden');
+            
+            rebuildAbstractOptions();
+        } else {
+            formTypeInput.value = 'standard';
+            modalTitle.innerText = 'Add New Question';
+            
+            // Show Standard fields
+            qTypeWrapper.classList.remove('hidden');
+            standardTextWrapper.classList.remove('hidden');
+            switchLayout(document.getElementById('qTypeSelect').value); // Show MCQ or TF
+            
+            // Hide Abstract fields
+            abstractImageWrapper.classList.add('hidden');
+            abstractOptionsLayout.classList.add('hidden');
+        }
+    }
 
-    // ── Open Edit Modal
-    function openEditModal(questionId, questionText, questionType, categoryName, btn) {
-        document.getElementById('editForm').action = btn.dataset.editUrl;
+    function switchLayout(type) {
+        const mcq = document.getElementById('mcqLayout');
+        const tf = document.getElementById('tfLayout');
+        const isAbstract = document.getElementById('formTypeInput').value === 'abstract';
+        
+        if (isAbstract) return; // Abstract stays in its own layout
 
-        // Populate text
-        document.getElementById('editText').value = questionText;
+        if (type === 'MCQ') {
+            mcq.classList.remove('hidden');
+            tf.classList.add('hidden');
+        } else {
+            mcq.classList.add('hidden');
+            tf.classList.remove('hidden');
+        }
+    }
 
-        // Set type & toggle layout
-        const typeSelect = document.getElementById('editType');
-        typeSelect.value = questionType;
-        switchEditLayout(questionType);
+    function handleQuestionSubmit(form) {
+        const type = document.getElementById('formTypeInput').value;
+        const errorEl = document.getElementById('addAnswerError');
+        const errorMsg = document.getElementById('errorMsgText');
+        
+        if (type === 'abstract') {
+            // Validate Abstract
+            const qImg = document.getElementById('abstractQuestionImage').files.length > 0;
+            const correct = document.getElementById('abstractCorrectSelect').value;
+            
+            if (!qImg) {
+                errorMsg.innerText = "Please upload a question image.";
+                errorEl.classList.remove('hidden');
+                return false;
+            }
+            if (!correct) {
+                errorMsg.innerText = "Please select the correct answer.";
+                errorEl.classList.remove('hidden');
+                return false;
+            }
+            // Ensure all option images are uploaded
+            for (let i = 1; i <= abstractOptionCount; i++) {
+                const fileInput = document.getElementById(`opt_img_input_${i}`);
+                if (fileInput && fileInput.files.length === 0) {
+                    errorMsg.innerText = `Please upload image for Option ${i}.`;
+                    errorEl.classList.remove('hidden');
+                    return false;
+                }
+            }
+        } else {
+            // Validate Standard
+            const qType = document.getElementById('qTypeSelect').value;
+            if (qType === 'MCQ') {
+                const correct = form.querySelector('input[name="correct_option"]:checked');
+                if (!correct) {
+                    errorMsg.innerText = "Please select the correct MCQ option.";
+                    errorEl.classList.remove('hidden');
+                    return false;
+                }
+            } else {
+                const correct = form.querySelector('input[name="correct_tf"]:checked');
+                if (!correct) {
+                    errorMsg.innerText = "Please select True or False.";
+                    errorEl.classList.remove('hidden');
+                    return false;
+                }
+            }
+        }
+        
+        errorEl.classList.add('hidden');
+        return true;
+    }
 
-        // Set category by matching data-name
+    // --- Abstract Reasoning Specific Functions ---
+
+    function changeAbstractOptionCount(delta) {
+        const newCount = abstractOptionCount + delta;
+        if (newCount >= 2 && newCount <= 12) {
+            abstractOptionCount = newCount;
+            document.getElementById('abstractOptionCountLabel').innerText = abstractOptionCount;
+            rebuildAbstractOptions();
+        }
+    }
+
+    function rebuildAbstractOptions() {
+        const grid = document.getElementById('abstractOptionsGrid');
+        const select = document.getElementById('abstractCorrectSelect');
+        const currentCorrect = select.value;
+
+        grid.innerHTML = '';
+        select.innerHTML = '<option value="">-- Choose Correct --</option>';
+
+        for (let i = 1; i <= abstractOptionCount; i++) {
+            // Add to Grid
+            const item = document.createElement('div');
+            item.className = 'relative group';
+            item.innerHTML = `
+                <div class="aspect-square bg-surface-container rounded-lg border border-outline-variant/20 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-all overflow-hidden"
+                     onclick="document.getElementById('opt_img_input_${i}').click()">
+                    <span class="text-[10px] font-black text-outline/40 absolute top-1 left-2">${i}</span>
+                    <span id="opt_icon_${i}" class="material-symbols-outlined text-outline/30 text-xl">add_a_photo</span>
+                    <img id="opt_preview_${i}" src="" class="hidden w-full h-full object-contain">
+                    <input type="file" name="option_image_${i}" id="opt_img_input_${i}" accept="image/*" class="hidden" onchange="previewAbstractOption(this, ${i})">
+                </div>
+            `;
+            grid.appendChild(item);
+
+            // Add to Select
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `Option ${i}`;
+            if (currentCorrect == i) opt.selected = true;
+            select.appendChild(opt);
+        }
+    }
+
+    function previewAbstractQuestion(input) {
+        const preview = document.getElementById('abstractQuestionPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewAbstractOption(input, index) {
+        const preview = document.getElementById(`opt_preview_${index}`);
+        const icon = document.getElementById(`opt_icon_${index}`);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                icon.classList.add('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function resetAddModal() {
+        const form = document.querySelector('#questionModal form');
+        form.reset();
+        
+        // Reset Standard previews/states
+        document.getElementById('addAnswerError').classList.add('hidden');
+        
+        // Reset Abstract previews
+        const qPreview = document.getElementById('abstractQuestionPreview');
+        qPreview.src = '';
+        qPreview.classList.add('hidden');
+        
+        abstractOptionCount = 8;
+        document.getElementById('abstractOptionCountLabel').innerText = 8;
+        
+        // Default back to standard unless "Abstract" is first category
+        checkCategory(document.getElementById('categorySelect'));
+    }
+
+    // --- Other Shared Functions (Search, Category Management, Delete, Edit) ---
+
+    function filterQuestions() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const catFilter = document.getElementById('categoryFilter').value;
+        const rows = document.querySelectorAll('.question-row');
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            const category = row.dataset.category;
+            const matchesQuery = text.includes(query);
+            const matchesCat = (catFilter === 'all' || category === catFilter);
+
+            row.style.display = (matchesQuery && matchesCat) ? '' : 'none';
+        });
+    }
+
+    function addCategory() {
+        const input = document.getElementById('newCategoryInput');
+        const name = input.value.trim();
+        const errorEl = document.getElementById('categoryError');
+        const errorText = document.getElementById('categoryErrorText');
+
+        if (!name) return;
+
+        fetch('/manage_categories/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: `action=add&name=${encodeURIComponent(name)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                location.reload();
+            } else {
+                errorText.innerText = data.error;
+                errorEl.classList.remove('hidden');
+            }
+        });
+    }
+
+    function deleteCategory(id, name) {
+        if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+        fetch('/manage_categories/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: `action=delete&id=${id}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) {
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+
+    function openDeleteModal(btn, preview) {
+        const form = document.getElementById('deleteForm');
+        form.action = btn.dataset.deleteUrl;
+        document.getElementById('deleteQuestionPreview').innerText = preview;
+        toggleModal('deleteModal', true);
+    }
+
+    function openEditModal(id, text, type, category, btn) {
+        const form = document.getElementById('editForm');
+        form.action = btn.dataset.editUrl;
+        
+        document.getElementById('editText').value = text;
+        document.getElementById('editType').value = type;
+        
+        // Select category
         const catSelect = document.getElementById('editCategory');
         for (let opt of catSelect.options) {
-            if (opt.dataset.name === categoryName) {
-                catSelect.value = opt.value;
+            if (opt.text === category) {
+                opt.selected = true;
                 break;
             }
         }
 
-        // Pre-fill choices from the row's data-options attribute
-        const row = btn.closest('tr');
-        const options = JSON.parse(row.dataset.options || '[]');
-        const letters = ['A', 'B', 'C', 'D'];
-
-        // Clear all first
-        letters.forEach(l => {
-            const inp = document.getElementById(`editOption${l}`);
-            const radio = document.getElementById(`editCorrect${l}`);
-            if (inp) inp.value = '';
-            if (radio) radio.checked = false;
-        });
-
-        if (questionType === 'MCQ') {
-            // Fill MCQ choices
-            options.forEach((opt, i) => {
-                const letter = letters[i];
-                if (!letter) return;
-                const inp   = document.getElementById(`editOption${letter}`);
-                const radio = document.getElementById(`editCorrect${letter}`);
-                if (inp) inp.value = opt.text;
-                if (radio && opt.correct) radio.checked = true;
+        // Standard MCQ/TF logic for edit
+        const options = JSON.parse(btn.closest('tr').dataset.options);
+        if (type === 'MCQ') {
+            options.forEach(opt => {
+                const input = document.getElementById(`editOption${opt.letter}`);
+                const radio = document.getElementById(`editCorrect${opt.letter}`);
+                if (input) input.value = opt.text;
+                if (radio) radio.checked = opt.correct;
             });
+            switchEditLayout('MCQ');
         } else {
-            // Pre-check the correct T/F radio
-            const correctLabel = options.find(o => o.correct)?.text; // 'True' or 'False'
-            document.querySelectorAll('#editTfLayout input[type="radio"]').forEach(radio => {
-                radio.checked = (radio.value === correctLabel);
-            });
+            const isTrueCorrect = options.find(o => o.text === 'True')?.correct;
+            form.querySelector(`input[name="correct_tf"][value="${isTrueCorrect ? 'True' : 'False'}"]`).checked = true;
+            switchEditLayout('SS');
         }
 
         toggleModal('editModal', true);
     }
 
-    // ── Open Delete Modal
-    function openDeleteModal(btn, questionText) {
-        document.getElementById('deleteForm').action = btn.dataset.deleteUrl;
-        document.getElementById('deleteQuestionPreview').textContent = questionText;
-        toggleModal('deleteModal', true);
-    }
-
-    // ── Search & Category Filter
-    function filterQuestions() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const selectedCategory = document.getElementById('categoryFilter').value;
-        const rows = document.querySelectorAll('.question-row');
-
-        rows.forEach(row => {
-            const qId       = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-            const qText     = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const qAnswer   = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-            const rowCat    = row.getAttribute('data-category');
-
-            const matchesSearch   = qId.includes(searchTerm) || qText.includes(searchTerm) || qAnswer.includes(searchTerm);
-            const matchesCategory = (selectedCategory === 'all' || rowCat === selectedCategory);
-
-            row.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
-        });
-    }
-function validateAnswer(form) {
-    const type = form.querySelector('[name="question_type"]').value;
-    const errorId = form.id === 'editForm' ? 'editAnswerError' : 'addAnswerError';
-    const errorEl = document.getElementById(errorId);
-
-    // Clear previous highlights
-    const mcqId = form.id === 'editForm' ? 'editMcqLayout' : 'mcqLayout';
-    const tfId  = form.id === 'editForm' ? 'editTfLayout'  : 'tfLayout';
-    document.getElementById(mcqId).querySelectorAll('.flex.items-center').forEach(row => {
-        row.classList.remove('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl');
-    });
-    document.getElementById(tfId).querySelectorAll('label').forEach(label => {
-        label.classList.remove('bg-error/10', 'ring-1', 'ring-error');
-    });
-
-    if (type === 'MCQ') {
-        const selected = form.querySelector('input[name="correct_option"]:checked');
-        const selectedLetter = selected?.value;
-        const selectedInput = selectedLetter
-            ? form.querySelector(`input[name="option_${selectedLetter}"]`)
-            : null;
-
-        if (!selected || !selectedInput?.value.trim()) {
-            // Highlight all MCQ radio rows in red
-            document.getElementById(mcqId).querySelectorAll('.flex.items-center').forEach(row => {
-                row.classList.add('bg-error/10', 'ring-1', 'ring-error', 'rounded-xl');
-            });
-            errorEl.classList.remove('hidden');
-            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return false;
-        }
-    } else {
-        const selected = form.querySelector('input[name="correct_tf"]:checked');
-        if (!selected) {
-            // Highlight both T/F labels in red
-            document.getElementById(tfId).querySelectorAll('label').forEach(label => {
-                label.classList.add('bg-error/10', 'ring-1', 'ring-error');
-            });
-            errorEl.classList.remove('hidden');
-            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return false;
+    function switchEditLayout(type) {
+        const mcq = document.getElementById('editMcqLayout');
+        const tf = document.getElementById('editTfLayout');
+        if (type === 'MCQ') {
+            mcq.classList.remove('hidden');
+            tf.classList.add('hidden');
+        } else {
+            mcq.classList.add('hidden');
+            tf.classList.remove('hidden');
         }
     }
 
-    errorEl.classList.add('hidden');
-    return true;
-}
+    function validateAnswer(form) {
+        const type = form.querySelector('[name="question_type"]').value;
+        const errorEl = (form.id === 'editForm') ? document.getElementById('editAnswerError') : document.getElementById('addAnswerError');
 
-async function addCategory() {
-    const input = document.getElementById('newCategoryInput');
-    const errorEl = document.getElementById('categoryError');
-    const errorText = document.getElementById('categoryErrorText');
-    const name = input.value.trim();
-
-    if (!name) {
-        errorText.textContent = 'Please enter a category name.';
-        errorEl.classList.remove('hidden');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('csrfmiddlewaretoken', getCSRFToken());
-
-    const res = await fetch('/categories/add/', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (!data.ok) {
-        errorText.textContent = data.error;
-        errorEl.classList.remove('hidden');
-        return;
-    }
-
-    errorEl.classList.add('hidden');
-    input.value = '';
-
-    // Remove empty message if present
-    const emptyMsg = document.getElementById('emptyCategoryMsg');
-    if (emptyMsg) emptyMsg.remove();
-
-    // Add to category list in modal
-    const list = document.getElementById('categoryList');
-    list.insertAdjacentHTML('beforeend', `
-        <li class="flex items-center justify-between py-3" id="cat-item-${data.id}">
-            <span class="text-sm font-semibold text-on-surface">${data.name}</span>
-            <button type="button" onclick="deleteCategory(${data.id}, '${data.name}')"
-                    class="p-1.5 hover:bg-error/10 text-error rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-base">delete</span>
-            </button>
-        </li>
-    `);
-
-    // Add to both category dropdowns
-    const option = `<option value="${data.id}">${data.name}</option>`;
-    document.getElementById('categorySelect').insertAdjacentHTML('beforeend', option);
-    document.getElementById('editCategory').insertAdjacentHTML('beforeend',
-        `<option value="${data.id}" data-name="${data.name}">${data.name}</option>`);
-}
-
-async function deleteCategory(id, name) {
-    const formData = new FormData();
-    formData.append('csrfmiddlewaretoken', getCSRFToken());
-
-    const res = await fetch(`/categories/${id}/delete/`, { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (!data.ok) {
-        alert(data.error);
-        return;
-    }
-
-    // Remove from modal list
-    document.getElementById(`cat-item-${id}`)?.remove();
-
-    // Remove from both dropdowns
-    document.querySelectorAll(`#categorySelect option[value="${id}"], #editCategory option[value="${id}"]`)
-        .forEach(o => o.remove());
-}
-function resetAddModal() {
-    document.querySelector('#questionModal textarea[name="text"]').value = '';
-    document.querySelectorAll('#questionModal input[type="text"]').forEach(i => i.value = '');
-    document.querySelectorAll('#questionModal input[type="radio"]').forEach(r => r.checked = false);
-    document.querySelector('#questionModal select[name="question_type"]').value = 'MCQ';
-    switchLayout('MCQ');
-}
-
-// ── Abstract Reasoning Modal ──────────────────────────────────────────────
-
-let abstractOptionCount = 8; // default for the sample images (they have 8)
-const ABSTRACT_MIN = 2;
-const ABSTRACT_MAX = 12;
-
-function openAbstractModal() {
-    // Find the Abstract Reasoning category ID from the dropdown
-    const catSelect = document.getElementById('categorySelect');
-    let found = false;
-    for (let opt of catSelect.options) {
-        if (opt.text.toLowerCase().includes('abstract')) {
-            document.getElementById('abstractCategoryId').value = opt.value;
-            found = true;
-            break;
+        if (type === 'MCQ') {
+            const correct = form.querySelector('input[name="correct_option"]:checked');
+            if (!correct) {
+                errorEl.classList.remove('hidden');
+                return false;
+            }
+        } else {
+            const correct = form.querySelector('input[name="correct_tf"]:checked');
+            if (!correct) {
+                errorEl.classList.remove('hidden');
+                return false;
+            }
         }
+        errorEl.classList.add('hidden');
+        return true;
     }
-
-    if (!found) {
-        alert("Error: Please create a category named 'Abstract Reasoning' first.");
-        return;
-    }
-
-    abstractOptionCount = 8;
-    rebuildAbstractOptions();
-    toggleModal('abstractModal', true);
-}
-
-function changeAbstractOptionCount(delta) {
-    const next = abstractOptionCount + delta;
-    if (next < ABSTRACT_MIN || next > ABSTRACT_MAX) return;
-    abstractOptionCount = next;
-    document.getElementById('abstractOptionCount').textContent = abstractOptionCount;
-    rebuildAbstractOptions();
-}
-
-function rebuildAbstractOptions() {
-    const grid = document.getElementById('abstractOptionsGrid');
-    const select = document.getElementById('abstractCorrectSelect');
-    grid.innerHTML = '';
-    select.innerHTML = '<option value="">— Select correct answer —</option>';
-
-    for (let i = 1; i <= abstractOptionCount; i++) {
-        // Image upload cell
-        grid.insertAdjacentHTML('beforeend', `
-            <div class="relative group">
-                <div class="border-2 border-dashed border-outline-variant/40 rounded-xl 
-                            aspect-square flex flex-col items-center justify-center 
-                            cursor-pointer hover:border-primary hover:bg-primary/5 
-                            transition-all overflow-hidden bg-surface-container-low"
-                     onclick="document.getElementById('abstractOpt${i}').click()">
-                    <img id="abstractOptPreview${i}" src="" alt=""
-                         class="hidden w-full h-full object-contain rounded-xl">
-                    <div id="abstractOptPlaceholder${i}" class="flex flex-col items-center gap-1">
-                        <span class="material-symbols-outlined text-outline text-2xl">add_photo_alternate</span>
-                        <span class="text-[10px] font-bold text-outline">Option ${i}</span>
-                    </div>
-                    <input type="file" name="option_image_${i}" id="abstractOpt${i}" 
-                           accept="image/*" class="hidden"
-                           onchange="previewAbstractOption(this, ${i})">
-                </div>
-                <!-- Number badge -->
-                <span class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-primary 
-                             text-white text-[9px] font-bold flex items-center justify-center shadow">
-                    ${i}
-                </span>
-            </div>
-        `);
-
-        // Correct answer dropdown option
-        select.insertAdjacentHTML('beforeend',
-            `<option value="${i}">Option ${i}</option>`);
-    }
-}
-
-function previewAbstractQuestion(input) {
-    if (!input.files?.[0]) return;
-    const preview = document.getElementById('abstractQuestionPreview');
-    preview.src = URL.createObjectURL(input.files[0]);
-    preview.classList.remove('hidden');
-    document.querySelector('#abstractDropzone span.material-symbols-outlined').classList.add('hidden');
-    document.querySelector('#abstractDropzone p').classList.add('hidden');
-}
-
-function previewAbstractOption(input, num) {
-    if (!input.files?.[0]) return;
-    const preview = document.getElementById(`abstractOptPreview${num}`);
-    const placeholder = document.getElementById(`abstractOptPlaceholder${num}`);
-    preview.src = URL.createObjectURL(input.files[0]);
-    preview.classList.remove('hidden');
-    placeholder.classList.add('hidden');
-}
-
-function validateAbstractAnswer(form) {
-    const correct = form.querySelector('[name="correct_option"]').value;
-    const errorEl = document.getElementById('abstractAnswerError');
-    if (!correct) {
-        errorEl.classList.remove('hidden');
-        return false;
-    }
-    errorEl.classList.add('hidden');
-    return true;
-}
