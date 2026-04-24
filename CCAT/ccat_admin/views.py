@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.utils.dateparse import parse_datetime # Add this import at the top
 from django.core.paginator import Paginator
-from django.db.models import Q, Count, Max
+from django.db.models import Q, Count
 from django.http import JsonResponse
 
 
@@ -78,10 +78,18 @@ def _handle_standard_question(request, category):
 
     # Logic for custom ID (e.g., MATH-001)
     prefix = category.name[:4].upper()
-    existing = Question.objects.filter(custom_id__startswith=f"{prefix}-").aggregate(Max('custom_id'))[
-        'custom_id__max']
-    last_num = int(existing.split('-')[-1]) if existing else 0
-    custom_id = f"{prefix}-{last_num + 1:03d}"
+    existing_ids = Question.objects.filter(
+        custom_id__startswith=f"{prefix}-"
+    ).values_list('custom_id', flat=True)
+    last_num = max(
+        (int(cid.split('-')[-1]) for cid in existing_ids if cid.split('-')[-1].isdigit()),
+        default=0
+    )
+    # Guard: keep incrementing until we find a free slot
+    candidate_num = last_num + 1
+    while Question.objects.filter(custom_id=f"{prefix}-{candidate_num:03d}").exists():
+        candidate_num += 1
+    custom_id = f"{prefix}-{candidate_num:03d}"
 
     new_q = Question.objects.create(
         question_text=q_text,
@@ -111,11 +119,18 @@ def _handle_abstract_question(request, category):
 
     # Generate custom ID
     prefix = category.name[:4].upper()
-    existing = Question.objects.filter(
+    existing_ids = Question.objects.filter(
         custom_id__startswith=f"{prefix}-"
-    ).aggregate(Max('custom_id'))['custom_id__max']
-    last_num = int(existing.split('-')[-1]) if existing else 0
-    custom_id = f"{prefix}-{last_num + 1:03d}"
+    ).values_list('custom_id', flat=True)
+    last_num = max(
+        (int(cid.split('-')[-1]) for cid in existing_ids if cid.split('-')[-1].isdigit()),
+        default=0
+    )
+    # Guard: keep incrementing until we find a free slot
+    candidate_num = last_num + 1
+    while Question.objects.filter(custom_id=f"{prefix}-{candidate_num:03d}").exists():
+        candidate_num += 1
+    custom_id = f"{prefix}-{candidate_num:03d}"
 
     new_q = Question.objects.create(
         question_text=f"Abstract Reasoning Question {custom_id}",
@@ -210,31 +225,60 @@ def export_questions(request):
 def edit_question(request, question_id):
     question = get_object_or_404(Question, id=question_id)
     if request.method == 'POST':
-        question.question_text = request.POST.get('text')
-        question.category_id   = request.POST.get('category')
-        question.question_type = request.POST.get('question_type')
-        question.save()
+        cat_id = request.POST.get('category')
+        category = get_object_or_404(Category, id=cat_id)
+        is_abstract = 'abstract' in category.name.lower()
 
-        question.options.all().delete()
+        if is_abstract:
+            # Handle Abstract Reasoning Update
+            if request.FILES.get('question_image'):
+                question.question_image = request.FILES.get('question_image')
+            
+            question.category = category
+            question.question_type = 'MCQ' # Abstract is always MCQ layout
+            question.save()
 
-        if question.question_type == 'MCQ':
-            correct_letter = request.POST.get('correct_option')
-            for letter in ['A', 'B', 'C', 'D']:
-                opt_text = request.POST.get(f'option_{letter}', '').strip()
-                if opt_text:
-                    Option.objects.create(question=question, option_text=opt_text, is_correct=(letter == correct_letter))
+            correct_idx = request.POST.get('abstract_correct_option')
+            options = question.options.all().order_by('id')
+            
+            for i, opt in enumerate(options, 1):
+                new_img = request.FILES.get(f'option_image_{i}')
+                if new_img:
+                    opt.option_image = new_img
+                opt.is_correct = (str(i) == correct_idx)
+                opt.save()
         else:
-            correct_tf = request.POST.get('correct_tf')
-            for label in ['True', 'False']:
-                Option.objects.create(question=question, option_text=label, is_correct=(label == correct_tf))
+            # Handle Standard Question Update
+            question.question_text = request.POST.get('text')
+            question.category = category
+            question.question_type = request.POST.get('question_type')
+            
+            # If it was abstract, we might want to clear the image
+            if not is_abstract and question.question_image:
+                 question.question_image = None
+            
+            question.save()
+
+            question.options.all().delete()
+
+            if question.question_type == 'MCQ':
+                correct_letter = request.POST.get('correct_option')
+                for letter in ['A', 'B', 'C', 'D']:
+                    opt_text = request.POST.get(f'option_{letter}', '').strip()
+                    if opt_text:
+                        Option.objects.create(question=question, option_text=opt_text, is_correct=(letter == correct_letter))
+            else:
+                correct_tf = request.POST.get('correct_tf')
+                for label in ['True', 'False']:
+                    Option.objects.create(question=question, option_text=label, is_correct=(label == correct_tf))
 
     return redirect('question_management')
 
 
 @login_required(login_url='admin_login')
 def delete_question(request, question_id):
-    question = get_object_or_404(Question, id=question_id)
     if request.method == 'POST':
+        question = get_object_or_404(Question, id=question_id)
         question.delete()
     return redirect('question_management')
 

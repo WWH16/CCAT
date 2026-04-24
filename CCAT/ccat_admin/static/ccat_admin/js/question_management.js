@@ -95,53 +95,56 @@
         const type = document.getElementById('formTypeInput').value;
         const errorEl = document.getElementById('addAnswerError');
         const errorMsg = document.getElementById('errorMsgText');
-        const saveBtn = form.querySelector('button[type="submit"]');
+
+        const showErr = (msg) => {
+            errorMsg.innerText = msg;
+            errorEl.classList.remove('hidden');
+        };
+
+        errorEl.classList.add('hidden');
 
         if (type === 'abstract') {
             const qImg = document.getElementById('abstractQuestionImage').files.length > 0;
             const correct = document.getElementById('abstractCorrectSelect').value;
 
-            if (!qImg) {
-                errorMsg.innerText = "Please upload a question image.";
-                showError(errorEl, saveBtn);
-                return false;
-            }
-            if (!correct) {
-                errorMsg.innerText = "Please select the correct answer.";
-                showError(errorEl, saveBtn);
-                return false;
-            }
+            if (!qImg) { showErr("Please upload a question image."); return false; }
+            if (!correct) { showErr("Please select the correct answer."); return false; }
+
             for (let i = 1; i <= abstractOptionCount; i++) {
                 const fileInput = document.getElementById(`opt_img_input_${i}`);
-                if (fileInput && fileInput.files.length === 0) {
-                    errorMsg.innerText = `Please upload image for Option ${i}.`;
-                    showError(errorEl, saveBtn);
-                    return false;
+                if (!fileInput || fileInput.files.length === 0) {
+                    showErr(`Please upload image for Option ${i}.`); return false;
                 }
             }
         } else {
+            const qText = document.getElementById('questionTextarea').value.trim();
+            if (!qText) { showErr("Please enter a question text."); return false; }
+
             const qType = document.getElementById('qTypeSelect').value;
             if (qType === 'MCQ') {
                 const correct = form.querySelector('input[name="correct_option"]:checked');
-                if (!correct) {
-                    errorMsg.innerText = "Please select the correct MCQ option.";
-                    showError(errorEl, saveBtn);
-                    return false;
+                if (!correct) { showErr("Please select the correct MCQ option."); return false; }
+
+                const selectedLetter = correct.value;
+                const selectedText = form.querySelector(`input[name="option_${selectedLetter}"]`).value.trim();
+                if (!selectedText) { showErr(`Selected option ${selectedLetter} has no text.`); return false; }
+
+                // Also check all filled options have text if marked correct
+                for (const letter of ['A','B','C','D']) {
+                    const radio = form.querySelector(`input[name="correct_option"][value="${letter}"]`);
+                    const text = form.querySelector(`input[name="option_${letter}"]`).value.trim();
+                    if (radio.checked && !text) {
+                        showErr(`Option ${letter} is selected as correct but has no text.`); return false;
+                    }
                 }
             } else {
                 const correct = form.querySelector('input[name="correct_tf"]:checked');
-                if (!correct) {
-                    errorMsg.innerText = "Please select True or False.";
-                    showError(errorEl, saveBtn);
-                    return false;
-                }
+                if (!correct) { showErr("Please select True or False."); return false; }
             }
         }
 
-        errorEl.classList.add('hidden');
         return true;
     }
-
     // --- Abstract Reasoning Specific Functions ---
 
     function changeAbstractOptionCount(delta) {
@@ -255,13 +258,13 @@
 
         if (!name) return;
 
-        fetch('/manage_categories/', {
+        fetch('/categories/add/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: `action=add&name=${encodeURIComponent(name)}`
+            body: `name=${encodeURIComponent(name)}`
         })
         .then(res => res.json())
         .then(data => {
@@ -277,13 +280,12 @@
     function deleteCategory(id, name) {
         if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
-        fetch('/manage_categories/', {
+        fetch(`/categories/${id}/delete/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-CSRFToken': getCSRFToken()
-            },
-            body: `action=delete&id=${id}`
+            }
         })
         .then(res => res.json())
         .then(data => {
@@ -311,35 +313,149 @@
         
         // Select category
         const catSelect = document.getElementById('editCategory');
+        let isAbstract = false;
         for (let opt of catSelect.options) {
             if (opt.text === category) {
                 opt.selected = true;
+                isAbstract = opt.text.toLowerCase().includes('abstract');
                 break;
             }
         }
 
-        // Standard MCQ/TF logic for edit
-        const options = JSON.parse(btn.closest('tr').dataset.options);
-        if (type === 'MCQ') {
-            options.forEach(opt => {
-                const input = document.getElementById(`editOption${opt.letter}`);
-                const radio = document.getElementById(`editCorrect${opt.letter}`);
-                if (input) input.value = opt.text;
-                if (radio) radio.checked = opt.correct;
-            });
-            switchEditLayout('MCQ');
+        const row = btn.closest('tr');
+        const options = JSON.parse(row.dataset.options);
+        const qImage = row.dataset.image;
+
+        if (isAbstract) {
+            checkEditCategory(catSelect);
+            const preview = document.getElementById('editAbstractQuestionPreview');
+            if (qImage) {
+                preview.src = qImage;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+            rebuildEditAbstractOptions(options);
         } else {
-            const isTrueCorrect = options.find(o => o.text === 'True')?.correct;
-            form.querySelector(`input[name="correct_tf"][value="${isTrueCorrect ? 'True' : 'False'}"]`).checked = true;
-            switchEditLayout('SS');
+            checkEditCategory(catSelect);
+            if (type === 'MCQ') {
+                options.forEach(opt => {
+                    const input = document.getElementById(`editOption${opt.letter}`);
+                    const radio = document.getElementById(`editCorrect${opt.letter}`);
+                    if (input) input.value = opt.text;
+                    if (radio) radio.checked = opt.correct;
+                });
+                switchEditLayout('MCQ');
+            } else {
+                const isTrueCorrect = options.find(o => o.text === 'True')?.correct;
+                if (isTrueCorrect) {
+                    document.getElementById('editCorrectTrue').checked = true;
+                } else {
+                    document.getElementById('editCorrectFalse').checked = true;
+                }
+                switchEditLayout('SS');
+            }
         }
 
         toggleModal('editModal', true);
     }
 
+    function checkEditCategory(select) {
+        const catName = select.options[select.selectedIndex].text.toLowerCase();
+        const isAbstract = catName.includes('abstract');
+
+        const qTypeWrapper = document.getElementById('editQTypeWrapper');
+        const standardTextWrapper = document.getElementById('editStandardTextWrapper');
+        const abstractImageWrapper = document.getElementById('editAbstractImageWrapper');
+        const mcqLayout = document.getElementById('editMcqLayout');
+        const tfLayout = document.getElementById('editTfLayout');
+        const abstractOptionsLayout = document.getElementById('editAbstractOptionsLayout');
+        const questionTextarea = document.getElementById('editText');
+
+        if (isAbstract) {
+            abstractImageWrapper.classList.remove('hidden');
+            abstractOptionsLayout.classList.remove('hidden');
+            qTypeWrapper.classList.add('hidden');
+            standardTextWrapper.classList.add('hidden');
+            mcqLayout.classList.add('hidden');
+            tfLayout.classList.add('hidden');
+            questionTextarea.disabled = true;
+        } else {
+            qTypeWrapper.classList.remove('hidden');
+            standardTextWrapper.classList.remove('hidden');
+            switchEditLayout(document.getElementById('editType').value);
+            questionTextarea.disabled = false;
+            abstractImageWrapper.classList.add('hidden');
+            abstractOptionsLayout.classList.add('hidden');
+        }
+    }
+
+    function rebuildEditAbstractOptions(options) {
+        const grid = document.getElementById('editAbstractOptionsGrid');
+        const select = document.getElementById('editAbstractCorrectSelect');
+
+        grid.innerHTML = '';
+        select.innerHTML = '<option value="">-- Choose Correct --</option>';
+
+        options.forEach((opt, idx) => {
+            const i = idx + 1;
+            // Add to Grid
+            const item = document.createElement('div');
+            item.className = 'relative group';
+            item.innerHTML = `
+                <div class="aspect-square bg-surface-container rounded-lg border border-outline-variant/20 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-all overflow-hidden"
+                     onclick="document.getElementById('edit_opt_img_input_${i}').click()">
+                    <span class="text-[10px] font-black text-outline/40 absolute top-1 left-2">${i}</span>
+                    <span id="edit_opt_icon_${i}" class="material-symbols-outlined text-outline/30 text-xl ${opt.image ? 'hidden' : ''}">add_a_photo</span>
+                    <img id="edit_opt_preview_${i}" src="${opt.image || ''}" class="${opt.image ? '' : 'hidden'} w-full h-full object-contain">
+                    <input type="file" name="option_image_${i}" id="edit_opt_img_input_${i}" accept="image/*" class="hidden" onchange="previewEditAbstractOption(this, ${i})">
+                </div>
+            `;
+            grid.appendChild(item);
+
+            // Add to Select
+            const o = document.createElement('option');
+            o.value = i;
+            o.textContent = `Option ${i}`;
+            if (opt.correct) o.selected = true;
+            select.appendChild(o);
+        });
+    }
+
+    function previewEditAbstractQuestion(input) {
+        const preview = document.getElementById('editAbstractQuestionPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewEditAbstractOption(input, index) {
+        const preview = document.getElementById(`edit_opt_preview_${index}`);
+        const icon = document.getElementById(`edit_opt_icon_${index}`);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                icon.classList.add('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function switchEditLayout(type) {
         const mcq = document.getElementById('editMcqLayout');
         const tf = document.getElementById('editTfLayout');
+        const catSelect = document.getElementById('editCategory');
+        const isAbstract = catSelect.options[catSelect.selectedIndex].text.toLowerCase().includes('abstract');
+        
+        if (isAbstract) return;
+
         if (type === 'MCQ') {
             mcq.classList.remove('hidden');
             tf.classList.add('hidden');
@@ -350,22 +466,39 @@
     }
 
     function validateAnswer(form) {
-        const type = form.querySelector('[name="question_type"]').value;
-        const errorEl = (form.id === 'editForm') ? document.getElementById('editAnswerError') : document.getElementById('addAnswerError');
+        const catSelect = form.querySelector('[name="category"]');
+        const catName = catSelect.options[catSelect.selectedIndex].text.toLowerCase();
+        const isAbstract = catName.includes('abstract');
+        const errorEl = document.getElementById('editAnswerError');
+        const errorSpan = errorEl.querySelector('span:last-child');
 
-        if (type === 'MCQ') {
-            const correct = form.querySelector('input[name="correct_option"]:checked');
-            if (!correct) {
-                errorEl.classList.remove('hidden');
-                return false;
-            }
+        const showErr = (msg) => {
+            errorSpan.innerText = msg;
+            errorEl.classList.remove('hidden');
+        };
+
+        errorEl.classList.add('hidden');
+
+        if (isAbstract) {
+            const correct = form.querySelector('[name="abstract_correct_option"]').value;
+            if (!correct) { showErr("Please select the correct answer."); return false; }
         } else {
-            const correct = form.querySelector('input[name="correct_tf"]:checked');
-            if (!correct) {
-                errorEl.classList.remove('hidden');
-                return false;
+            const qText = form.querySelector('[name="text"]').value.trim();
+            if (!qText) { showErr("Please enter a question text."); return false; }
+
+            const type = form.querySelector('[name="question_type"]').value;
+            if (type === 'MCQ') {
+                const correct = form.querySelector('input[name="correct_option"]:checked');
+                if (!correct) { showErr("Please select the correct MCQ option."); return false; }
+
+                const selectedLetter = correct.value;
+                const selectedText = form.querySelector(`input[name="option_${selectedLetter}"]`).value.trim();
+                if (!selectedText) { showErr(`Selected option ${selectedLetter} has no text.`); return false; }
+            } else {
+                const correct = form.querySelector('input[name="correct_tf"]:checked');
+                if (!correct) { showErr("Please select True or False."); return false; }
             }
         }
-        errorEl.classList.add('hidden');
+
         return true;
     }

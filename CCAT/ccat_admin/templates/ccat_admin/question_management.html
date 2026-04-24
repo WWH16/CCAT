@@ -63,7 +63,8 @@
             {% for q in questions %}
             <tr class="question-row hover:bg-surface-container-low transition-colors group"
                 data-category="{{ q.category.name }}"
-                data-options='[{% for opt in q.options.all %}{"letter":"{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% else %}D{% endif %}","text":"{{ opt.option_text|escapejs }}","correct":{% if opt.is_correct %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                data-image="{% if q.question_image %}{{ q.question_image.url }}{% endif %}"
+                data-options='[{% for opt in q.options.all %}{"id":"{{ opt.id }}","letter":"{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% else %}{{ forloop.counter }}{% endif %}","text":"{{ opt.option_text|escapejs }}","image":"{% if opt.option_image %}{{ opt.option_image.url }}{% endif %}","correct":{% if opt.is_correct %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
                 <td class="px-6 py-4 text-xs font-mono font-bold text-primary">{{ q.custom_id }}</td>
                 <td class="px-6 py-4 text-sm text-on-surface truncate max-w-xs">{{ q.question_text }}</td>
                 <td class="px-6 py-4">
@@ -117,12 +118,14 @@
     <div class="flex items-center gap-2">
         {% if questions.has_previous %}
         <a href="?page={{ questions.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
-           class="px-4 py-2 rounded-lg border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-1">
-            <span class="material-symbols-outlined text-base">chevron_left</span> Previous
+           class="px-3 py-2 rounded-lg border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-base leading-none">chevron_left</span>
+            <span>Previous</span>
         </a>
         {% else %}
-        <span class="px-4 py-2 rounded-lg border border-outline-variant/30 text-outline/50 text-sm font-medium flex items-center gap-1 cursor-not-allowed">
-            <span class="material-symbols-outlined text-base">chevron_left</span> Previous
+        <span class="px-3 py-2 rounded-lg border border-outline-variant/20 bg-surface-container-low text-outline/40 text-sm font-medium flex items-center gap-1 select-none">
+            <span class="material-symbols-outlined text-base leading-none">chevron_left</span>
+            <span>Previous</span>
         </span>
         {% endif %}
 
@@ -139,12 +142,14 @@
 
         {% if questions.has_next %}
         <a href="?page={{ questions.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"
-           class="px-4 py-2 rounded-lg border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-1">
-            Next <span class="material-symbols-outlined text-base">chevron_right</span>
+           class="px-3 py-2 rounded-lg border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors flex items-center gap-1">
+            <span>Next</span>
+            <span class="material-symbols-outlined text-base leading-none">chevron_right</span>
         </a>
         {% else %}
-        <span class="px-4 py-2 rounded-lg border border-outline-variant/30 text-outline/50 text-sm font-medium flex items-center gap-1 cursor-not-allowed">
-            Next <span class="material-symbols-outlined text-base">chevron_right</span>
+        <span class="px-3 py-2 rounded-lg border border-outline-variant/20 bg-surface-container-low text-outline/40 text-sm font-medium flex items-center gap-1 select-none">
+            <span>Next</span>
+            <span class="material-symbols-outlined text-base leading-none">chevron_right</span>
         </span>
         {% endif %}
     </div>
@@ -286,7 +291,7 @@
 <div id="editModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
     <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="toggleModal('editModal', false)"></div>
 
-    <form id="editForm" method="POST" onsubmit="return validateAnswer(this)"
+    <form id="editForm" method="POST" enctype="multipart/form-data" onsubmit="return validateAnswer(this)"
           class="relative bg-surface-container-lowest w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {% csrf_token %}
 
@@ -304,13 +309,13 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1.5">
                     <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Category</label>
-                    <select name="category" id="editCategory" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
+                    <select name="category" id="editCategory" onchange="checkEditCategory(this)" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
                         {% for cat in categories %}
                             <option value="{{ cat.id }}">{{ cat.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="space-y-1.5">
+                <div class="space-y-1.5" id="editQTypeWrapper">
                     <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Type</label>
                     <select name="question_type" id="editType" onchange="switchEditLayout(this.value)" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
                         <option value="MCQ">Multiple Choice</option>
@@ -319,9 +324,25 @@
                 </div>
             </div>
 
-            <div class="space-y-1.5">
+            <div id="editStandardTextWrapper" class="space-y-1.5">
                 <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Question Text</label>
                 <textarea name="text" id="editText" class="w-full bg-surface-container border-none rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary resize-none" rows="3" placeholder="Enter question..."></textarea>
+            </div>
+
+            <!-- Abstract Question Image for Edit -->
+            <div id="editAbstractImageWrapper" class="hidden space-y-4">
+                 <div class="space-y-2">
+                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">
+                        Question Image (Matrix/Pattern)
+                    </label>
+                    <div class="border-2 border-dashed border-outline-variant/50 rounded-xl p-6 text-center hover:border-primary hover:bg-primary/5 transition-all cursor-pointer relative"
+                         onclick="document.getElementById('editAbstractQuestionImage').click()">
+                        <span class="material-symbols-outlined text-3xl text-outline mb-1 block">add_photo_alternate</span>
+                        <p class="text-xs text-outline">Click to change question image</p>
+                        <input type="file" name="question_image" id="editAbstractQuestionImage" accept="image/*" class="hidden" onchange="previewEditAbstractQuestion(this)">
+                        <img id="editAbstractQuestionPreview" src="" class="hidden mt-3 max-h-40 mx-auto rounded-lg border border-outline-variant/10 object-contain">
+                    </div>
+                </div>
             </div>
 
             <div id="editMcqLayout" class="space-y-4">
@@ -342,12 +363,24 @@
                 <div class="flex gap-4">
                     <label class="flex-1 flex items-center justify-between p-4 bg-surface-container rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
                         <span class="font-bold">True</span>
-                        <input type="radio" name="correct_tf" value="True" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
+                        <input type="radio" name="correct_tf" value="True" id="editCorrectTrue" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
                     </label>
                     <label class="flex-1 flex items-center justify-between p-4 bg-surface-container rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors">
                         <span class="font-bold">False</span>
-                        <input type="radio" name="correct_tf" value="False" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
+                        <input type="radio" name="correct_tf" value="False" id="editCorrectFalse" class="w-6 h-6 text-primary border-outline-variant focus:ring-primary">
                     </label>
+                </div>
+            </div>
+
+            <!-- Abstract Reasoning Options for Edit -->
+            <div id="editAbstractOptionsLayout" class="hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Option Images</label>
+                </div>
+                <div id="editAbstractOptionsGrid" class="grid grid-cols-4 gap-2"></div>
+                <div class="space-y-1.5">
+                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">Correct Answer</label>
+                    <select name="abstract_correct_option" id="editAbstractCorrectSelect" class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary"></select>
                 </div>
             </div>
         </div>
