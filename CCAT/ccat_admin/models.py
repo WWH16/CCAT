@@ -25,6 +25,8 @@ class Question(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     question_type = models.CharField(max_length=5, choices=TYPE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+    question_image = models.ImageField(upload_to='question_images/', blank=True, null=True)
+    num_options = models.PositiveSmallIntegerField(default=4)
 
     # The ID format you used in your UI (e.g., MATH-2024-001)
     custom_id = models.CharField(max_length=50, unique=True)
@@ -34,8 +36,9 @@ class Question(models.Model):
 
 class Option(models.Model):
     question = models.ForeignKey(Question, related_name='options', on_delete=models.CASCADE)
-    option_text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
+    option_image = models.ImageField(upload_to='option_images/', blank=True, null=True)
+    option_text = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"{self.option_text} ({'Correct' if self.is_correct else 'Wrong'})"

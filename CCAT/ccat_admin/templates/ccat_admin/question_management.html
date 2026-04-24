@@ -14,9 +14,17 @@
             <span class="material-symbols-outlined text-lg">download</span>
             Export Questions
         </a>
-        <button onclick="toggleModal('questionModal', true)" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-container text-white font-semibold shadow-lg hover:shadow-xl hover:opacity-95 transition-all flex items-center gap-2 text-sm">
+        <button onclick="openAbstractModal()"
+                class="px-4 py-2.5 rounded-lg border-2 border-primary text-primary
+                       font-semibold hover:bg-primary/5 transition-colors flex items-center gap-2 text-sm">
+            <span class="material-symbols-outlined text-lg">grid_view</span>
+            Add Abstract Question
+        </button>
+        <button onclick="toggleModal('questionModal', true); resetAddModal()"
+                class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-container
+                       text-white font-semibold shadow-lg flex items-center gap-2 text-sm">
             <span class="material-symbols-outlined text-lg">add</span>
-            Add New Question
+            Add Question
         </button>
     </div>
 </header>
@@ -392,6 +400,114 @@
             {% endfor %}
         </ul>
     </div>
+</div>
+    <!-- ─── ABSTRACT REASONING MODAL ─── -->
+<div id="abstractModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm"
+         onclick="toggleModal('abstractModal', false)"></div>
+
+    <form method="POST" action="{% url 'question_management' %}"
+          enctype="multipart/form-data"
+          onsubmit="return validateAbstractAnswer(this)"
+          class="relative bg-surface-container-lowest w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        {% csrf_token %}
+        <input type="hidden" name="question_form_type" value="abstract">
+
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-outline-variant/10 flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-on-surface">Add Abstract Reasoning Question</h2>
+                <p class="text-xs text-on-surface-variant mt-1">Upload a question image and numbered answer choices.</p>
+            </div>
+            <button type="button" onclick="toggleModal('abstractModal', false)"
+                    class="p-2 hover:bg-surface-container-high rounded-full">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6 no-scrollbar">
+
+            <!-- Category is locked to Abstract Reasoning -->
+            <input type="hidden" name="category" id="abstractCategoryId" value="">
+            <input type="hidden" name="question_type" value="MCQ">
+
+            <!-- Question Image Upload -->
+            <div class="space-y-2">
+                <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">
+                    Question Image (the matrix/pattern)
+                </label>
+                <div id="abstractDropzone"
+                     class="border-2 border-dashed border-outline-variant/50 rounded-xl p-8 text-center
+                            hover:border-primary hover:bg-primary/5 transition-all cursor-pointer relative"
+                     onclick="document.getElementById('abstractQuestionImage').click()">
+                    <span class="material-symbols-outlined text-4xl text-outline mb-2 block">add_photo_alternate</span>
+                    <p class="text-sm text-outline">Click to upload or drag & drop</p>
+                    <p class="text-xs text-outline/60 mt-1">PNG, JPG up to 5MB</p>
+                    <input type="file" name="question_image" id="abstractQuestionImage" accept="image/*"
+                           class="hidden" onchange="previewAbstractQuestion(this)">
+                    <!-- Preview overlay -->
+                    <img id="abstractQuestionPreview" src="" alt=""
+                         class="hidden mt-4 max-h-48 mx-auto rounded-lg border border-outline-variant/20 object-contain">
+                </div>
+            </div>
+
+            <!-- Dynamic Answer Options -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">
+                        Answer Choices
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-outline">Number of choices:</span>
+                        <div class="flex items-center gap-1 bg-surface-container rounded-lg p-1">
+                            <button type="button" onclick="changeAbstractOptionCount(-1)"
+                                    class="w-7 h-7 rounded flex items-center justify-center hover:bg-surface-container-high font-bold text-primary">
+                                −
+                            </button>
+                            <span id="abstractOptionCount" class="w-8 text-center text-sm font-bold">8</span>
+                            <button type="button" onclick="changeAbstractOptionCount(1)"
+                                    class="w-7 h-7 rounded flex items-center justify-center hover:bg-surface-container-high font-bold text-primary">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="abstractOptionsGrid" class="grid grid-cols-4 gap-3">
+                    <!-- Dynamically populated by JS -->
+                </div>
+            </div>
+
+            <!-- Correct Answer Selector -->
+            <div class="space-y-2">
+                <label class="text-[0.6875rem] font-bold uppercase tracking-widest text-on-surface-variant">
+                    Correct Answer
+                </label>
+                <select name="correct_option" id="abstractCorrectSelect"
+                        class="w-full bg-surface-container border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+
+            <p id="abstractAnswerError" class="hidden text-error text-xs font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">error</span>
+                Please upload all answer images and select the correct one.
+            </p>
+        </div>
+
+        <div class="px-8 py-6 bg-surface-container-low border-t border-outline-variant/10
+                    flex items-center justify-end gap-3 rounded-b-2xl">
+            <button type="button" onclick="toggleModal('abstractModal', false)"
+                    class="px-6 py-2.5 text-sm font-semibold text-on-surface-variant
+                           hover:bg-surface-container-high transition-colors rounded-md">
+                Cancel
+            </button>
+            <button type="submit"
+                    class="px-8 py-2.5 text-sm font-semibold bg-primary text-on-primary rounded-md shadow-lg">
+                Save Question
+            </button>
+        </div>
+    </form>
 </div>
 {% endblock %}
 

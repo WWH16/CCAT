@@ -237,3 +237,107 @@ function resetAddModal() {
     document.querySelector('#questionModal select[name="question_type"]').value = 'MCQ';
     switchLayout('MCQ');
 }
+
+// ── Abstract Reasoning Modal ──────────────────────────────────────────────
+
+let abstractOptionCount = 8; // default for the sample images (they have 8)
+const ABSTRACT_MIN = 2;
+const ABSTRACT_MAX = 12;
+
+function openAbstractModal() {
+    // Find the Abstract Reasoning category ID from the dropdown
+    const catSelect = document.getElementById('categorySelect');
+    let found = false;
+    for (let opt of catSelect.options) {
+        if (opt.text.toLowerCase().includes('abstract')) {
+            document.getElementById('abstractCategoryId').value = opt.value;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        alert("Error: Please create a category named 'Abstract Reasoning' first.");
+        return;
+    }
+
+    abstractOptionCount = 8;
+    rebuildAbstractOptions();
+    toggleModal('abstractModal', true);
+}
+
+function changeAbstractOptionCount(delta) {
+    const next = abstractOptionCount + delta;
+    if (next < ABSTRACT_MIN || next > ABSTRACT_MAX) return;
+    abstractOptionCount = next;
+    document.getElementById('abstractOptionCount').textContent = abstractOptionCount;
+    rebuildAbstractOptions();
+}
+
+function rebuildAbstractOptions() {
+    const grid = document.getElementById('abstractOptionsGrid');
+    const select = document.getElementById('abstractCorrectSelect');
+    grid.innerHTML = '';
+    select.innerHTML = '<option value="">— Select correct answer —</option>';
+
+    for (let i = 1; i <= abstractOptionCount; i++) {
+        // Image upload cell
+        grid.insertAdjacentHTML('beforeend', `
+            <div class="relative group">
+                <div class="border-2 border-dashed border-outline-variant/40 rounded-xl 
+                            aspect-square flex flex-col items-center justify-center 
+                            cursor-pointer hover:border-primary hover:bg-primary/5 
+                            transition-all overflow-hidden bg-surface-container-low"
+                     onclick="document.getElementById('abstractOpt${i}').click()">
+                    <img id="abstractOptPreview${i}" src="" alt=""
+                         class="hidden w-full h-full object-contain rounded-xl">
+                    <div id="abstractOptPlaceholder${i}" class="flex flex-col items-center gap-1">
+                        <span class="material-symbols-outlined text-outline text-2xl">add_photo_alternate</span>
+                        <span class="text-[10px] font-bold text-outline">Option ${i}</span>
+                    </div>
+                    <input type="file" name="option_image_${i}" id="abstractOpt${i}" 
+                           accept="image/*" class="hidden"
+                           onchange="previewAbstractOption(this, ${i})">
+                </div>
+                <!-- Number badge -->
+                <span class="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-primary 
+                             text-white text-[9px] font-bold flex items-center justify-center shadow">
+                    ${i}
+                </span>
+            </div>
+        `);
+
+        // Correct answer dropdown option
+        select.insertAdjacentHTML('beforeend',
+            `<option value="${i}">Option ${i}</option>`);
+    }
+}
+
+function previewAbstractQuestion(input) {
+    if (!input.files?.[0]) return;
+    const preview = document.getElementById('abstractQuestionPreview');
+    preview.src = URL.createObjectURL(input.files[0]);
+    preview.classList.remove('hidden');
+    document.querySelector('#abstractDropzone span.material-symbols-outlined').classList.add('hidden');
+    document.querySelector('#abstractDropzone p').classList.add('hidden');
+}
+
+function previewAbstractOption(input, num) {
+    if (!input.files?.[0]) return;
+    const preview = document.getElementById(`abstractOptPreview${num}`);
+    const placeholder = document.getElementById(`abstractOptPlaceholder${num}`);
+    preview.src = URL.createObjectURL(input.files[0]);
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+}
+
+function validateAbstractAnswer(form) {
+    const correct = form.querySelector('[name="correct_option"]').value;
+    const errorEl = document.getElementById('abstractAnswerError');
+    if (!correct) {
+        errorEl.classList.remove('hidden');
+        return false;
+    }
+    errorEl.classList.add('hidden');
+    return true;
+}

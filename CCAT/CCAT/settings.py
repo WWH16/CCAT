@@ -126,3 +126,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "CCAT" / "static",
 ]
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

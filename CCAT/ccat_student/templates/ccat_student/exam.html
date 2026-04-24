@@ -137,7 +137,7 @@
         </aside>
 
         <main class="ml-72 flex-1 p-8 lg:p-12">
-            <div class="max-w-3xl mx-auto">
+            <div class="max-w-5xl mx-auto">
                 <div class="flex items-center justify-between mb-8">
                     <div>
                         <span id="currentSectionLabel" class="text-xs font-bold text-primary tracking-widest uppercase mb-1 block"></span>
@@ -163,15 +163,74 @@
                     <div class="question-slide {% if forloop.first %}active{% endif %}" id="question{{ forloop.counter0 }}" data-qid="{{ q.id }}">
                         <div class="bg-surface-container-lowest rounded-xl shadow-sm p-8 lg:p-10 relative overflow-hidden mb-6 border border-slate-100">
                             <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary to-primary-container"></div>
+                            
+                            {% if "Abstract" in q.category.name %}
+                            <!-- Side-by-side Layout for Abstract Reasoning -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                                <!-- Left side: Question Content -->
+                                <div>
+                                    <p class="text-lg font-medium leading-relaxed text-on-surface mb-6">{{ q.question_text }}</p>
+                                    {% if q.question_image %}
+                                    <div class="rounded-xl overflow-hidden border border-slate-200 bg-white p-2">
+                                        <img src="{{ q.question_image.url }}" alt="Question Image" class="max-w-full h-auto mx-auto block rounded-lg">
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Right side: Selections -->
+                                <div class="space-y-4">
+                                    <p class="text-[10px] font-bold text-outline uppercase tracking-widest flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-sm">list</span>
+                                        Select your answer
+                                    </p>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {% for opt in q.shuffled_options %}
+                                        <label class="option-label group relative flex flex-col items-center p-0 rounded-xl border-2 border-surface-container cursor-pointer bg-white hover:border-emerald-200 transition-all overflow-hidden">
+                                            <input type="radio" name="q_{{ q.id }}" value="{{ opt.id }}" class="hidden peer" onchange="onAnswer({{ forloop.parentloop.counter0 }}, this)">
+                                            
+                                            <!-- Image Container -->
+                                            <div class="w-full aspect-square flex items-center justify-center">
+                                                {% if opt.option_image %}
+                                                    <img src="{{ opt.option_image.url }}" class="w-full h-full object-contain">
+                                                {% else %}
+                                                    <span class="text-xs font-bold text-primary">{{ opt.option_text }}</span>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Absolute selection indicator -->
+                                            <div class="absolute top-2 left-2 w-5 h-5 rounded-full border-2 border-outline/20 group-hover:border-primary flex items-center justify-center transition-all peer-checked:border-primary peer-checked:bg-primary shadow-sm bg-white/90 backdrop-blur-[2px]">
+                                                <div class="w-2 h-2 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                                            </div>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- Standard Layout for Other Categories -->
                             <p class="text-lg font-medium leading-relaxed text-on-surface mb-8">{{ q.question_text }}</p>
+                            
+                            {% if q.question_image %}
+                            <div class="mb-8 rounded-xl overflow-hidden border border-slate-200 bg-white p-2">
+                                <img src="{{ q.question_image.url }}" alt="Question Image" class="max-w-full h-auto mx-auto block rounded-lg">
+                            </div>
+                            {% endif %}
+
                             <div class="space-y-3">
                                 {% for opt in q.shuffled_options %}
                                 <label class="option-label group flex items-center p-4 rounded-xl border-2 border-surface-container cursor-pointer bg-surface-container-low hover:border-emerald-200 transition-all">
                                     <input type="radio" name="q_{{ q.id }}" value="{{ opt.id }}" class="w-5 h-5 text-primary focus:ring-primary" onchange="onAnswer({{ forloop.parentloop.counter0 }}, this)">
-                                    <span class="ml-4 flex-1 text-on-surface font-medium">{{ opt.option_text }}</span>
+                                    <span class="ml-4 flex-1 text-on-surface font-medium">
+                                        {% if opt.option_image %}
+                                            <img src="{{ opt.option_image.url }}" class="max-h-24 object-contain mx-auto rounded">
+                                        {% else %}
+                                            {{ opt.option_text }}
+                                        {% endif %}
+                                    </span>
                                 </label>
                                 {% endfor %}
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}

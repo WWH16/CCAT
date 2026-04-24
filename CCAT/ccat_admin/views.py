@@ -35,46 +35,19 @@ def admin_logout(request):
 @login_required(login_url='admin_login')
 def question_management(request):
     if request.method == "POST":
-        q_text = request.POST.get('text')
+        form_type = request.POST.get('question_form_type', 'standard')
         cat_id = request.POST.get('category')
-        q_type = request.POST.get('question_type')
 
-        # Validate correct answer before saving
-        correct_letter = request.POST.get('correct_option')
-        if q_type == 'MCQ' and (not correct_letter or not request.POST.get(f'option_{correct_letter}', '').strip()):
-            return redirect('question_management')
-        if q_type == 'SS' and not request.POST.get('correct_tf'):
+        if not cat_id:
+            # Should not happen with JS validation, but safety first
             return redirect('question_management')
 
         category = get_object_or_404(Category, id=cat_id)
 
-        # Logic for custom ID (e.g., MATH-001) — safe against deletions and Django admin inserts
-        prefix = category.name[:4].upper()
-        existing = Question.objects.filter(custom_id__startswith=f"{prefix}-").aggregate(Max('custom_id'))[
-            'custom_id__max']
-        last_num = int(existing.split('-')[-1]) if existing else 0
-        custom_id = f"{prefix}-{last_num + 1:03d}"
-
-        new_q = Question.objects.create(
-            question_text=q_text,
-            category=category,
-            question_type=q_type,
-            custom_id=custom_id,
-            is_validated=True
-        )
-
-        if q_type == 'MCQ':
-            for letter in ['A', 'B', 'C', 'D']:
-                opt_text = request.POST.get(f'option_{letter}')
-                is_correct = (request.POST.get('correct_option') == letter)
-                if opt_text:
-                    Option.objects.create(question=new_q, option_text=opt_text, is_correct=is_correct)
-        else:  # True/False (Layout sends 'SS')
-            correct_val = request.POST.get('correct_tf')
-            Option.objects.create(question=new_q, option_text="True", is_correct=(correct_val == "True"))
-            Option.objects.create(question=new_q, option_text="False", is_correct=(correct_val == "False"))
-
-        return redirect('question_management')
+        if form_type == 'abstract':
+            return _handle_abstract_question(request, category)
+        else:
+            return _handle_standard_question(request, category)
 
     # GET logic: select_related for category and prefetch_related for options
     # This prevents the "N+1" problem so your table loads fast
@@ -91,6 +64,80 @@ def question_management(request):
         'categories': categories,
         'total_questions': Question.objects.count(),
     })
+
+def _handle_standard_question(request, category):
+    q_text = request.POST.get('text')
+    q_type = request.POST.get('question_type')
+
+    # Validate correct answer before saving
+    correct_letter = request.POST.get('correct_option')
+    if q_type == 'MCQ' and (not correct_letter or not request.POST.get(f'option_{correct_letter}', '').strip()):
+        return redirect('question_management')
+    if q_type == 'SS' and not request.POST.get('correct_tf'):
+        return redirect('question_management')
+
+    # Logic for custom ID (e.g., MATH-001)
+    prefix = category.name[:4].upper()
+    existing = Question.objects.filter(custom_id__startswith=f"{prefix}-").aggregate(Max('custom_id'))[
+        'custom_id__max']
+    last_num = int(existing.split('-')[-1]) if existing else 0
+    custom_id = f"{prefix}-{last_num + 1:03d}"
+
+    new_q = Question.objects.create(
+        question_text=q_text,
+        category=category,
+        question_type=q_type,
+        custom_id=custom_id,
+    )
+
+    if q_type == 'MCQ':
+        for letter in ['A', 'B', 'C', 'D']:
+            opt_text = request.POST.get(f'option_{letter}')
+            is_correct = (request.POST.get('correct_option') == letter)
+            if opt_text:
+                Option.objects.create(question=new_q, option_text=opt_text, is_correct=is_correct)
+    else:  # True/False (Layout sends 'SS')
+        correct_val = request.POST.get('correct_tf')
+        Option.objects.create(question=new_q, option_text="True", is_correct=(correct_val == "True"))
+        Option.objects.create(question=new_q, option_text="False", is_correct=(correct_val == "False"))
+
+    return redirect('question_management')
+
+def _handle_abstract_question(request, category):
+    q_text   = request.POST.get('text', '')          # optional for abstract
+    q_type   = 'MCQ'
+    correct  = request.POST.get('correct_option')    # "1", "2", etc.
+
+    # Generate custom ID
+    prefix = category.name[:4].upper()
+    existing = Question.objects.filter(
+        custom_id__startswith=f"{prefix}-"
+    ).aggregate(Max('custom_id'))['custom_id__max']
+    last_num = int(existing.split('-')[-1]) if existing else 0
+    custom_id = f"{prefix}-{last_num + 1:03d}"
+
+    # Save question with optional image
+    new_q = Question.objects.create(
+        question_text=q_text or f"Abstract Reasoning Question {custom_id}",
+        category=category,
+        question_type=q_type,
+        custom_id=custom_id,
+        question_image=request.FILES.get('question_image'),
+    )
+
+    # Save each uploaded option image
+    for i in range(1, 13):  # JS allows up to 12 options
+        img = request.FILES.get(f'option_image_{i}')
+        if img:
+            is_correct = (str(i) == correct)
+            Option.objects.create(
+                question=new_q,
+                option_text=f"Option {i}",   # fallback text label
+                option_image=img,
+                is_correct=is_correct,
+            )
+
+    return redirect('question_management')
 
 
 @login_required(login_url='admin_login')
