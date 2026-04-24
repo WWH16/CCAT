@@ -133,7 +133,7 @@ def _handle_abstract_question(request, category):
     custom_id = f"{prefix}-{candidate_num:03d}"
 
     new_q = Question.objects.create(
-        question_text=f"Abstract Reasoning Question {custom_id}",
+        question_text=f"Abstract Question {custom_id}",
         category=category,
         question_type=q_type,
         custom_id=custom_id,

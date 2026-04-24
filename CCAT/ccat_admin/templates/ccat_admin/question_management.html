@@ -66,7 +66,15 @@
                 data-image="{% if q.question_image %}{{ q.question_image.url }}{% endif %}"
                 data-options='[{% for opt in q.options.all %}{"id":"{{ opt.id }}","letter":"{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% else %}{{ forloop.counter }}{% endif %}","text":"{{ opt.option_text|escapejs }}","image":"{% if opt.option_image %}{{ opt.option_image.url }}{% endif %}","correct":{% if opt.is_correct %}true{% else %}false{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
                 <td class="px-6 py-4 text-xs font-mono font-bold text-primary">{{ q.custom_id }}</td>
-                <td class="px-6 py-4 text-sm text-on-surface truncate max-w-xs">{{ q.question_text }}</td>
+                <td class="px-6 py-4 text-sm text-on-surface truncate max-w-xs">
+                {% if q.question_image %}
+                    <img src="{{ q.question_image.url }}"
+                         alt="Abstract question"
+                         class="h-12 w-auto rounded border border-outline-variant/20 object-contain bg-white">
+                {% else %}
+                    {{ q.question_text }}
+                {% endif %}
+                </td>
                 <td class="px-6 py-4">
                     <span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded uppercase tracking-wider">
                         {{ q.category.name }}
@@ -76,10 +84,16 @@
                 <td class="px-6 py-4">
                     {% for opt in q.options.all %}
                         {% if opt.is_correct %}
-                        <span class="text-sm font-semibold text-primary flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">check_circle</span>
-                            {{ opt.option_text }}
-                        </span>
+                            {% if opt.option_image %}
+                            <img src="{{ opt.option_image.url }}"
+                                 alt="Correct option"
+                                 class="h-12 w-auto rounded border-2 border-primary/40 object-contain bg-white">
+                            {% else %}
+                            <span class="text-sm font-semibold text-primary flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">check_circle</span>
+                                {{ opt.option_text }}
+                            </span>
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
                 </td>
