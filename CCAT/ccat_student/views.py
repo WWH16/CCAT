@@ -43,9 +43,23 @@ def signup_step2(request):
 
 def signup_step3(request):
     if request.method == 'POST':
+        lrn = request.POST.get('lrn_number')
+        
+        # Early check for duplicate LRN
+        if User.objects.filter(username=lrn).exists():
+            return render(request, 'ccat_student/signup_step3.html', {
+                'error': 'This LRN is already registered. Please proceed to the login page.',
+                'form_data': {
+                    'lrn_number': lrn,
+                    'last_school_attended': request.POST.get('last_school_attended'),
+                    'school_address': request.POST.get('school_address'),
+                    'gwa_score': request.POST.get('gwa_score'),
+                }
+            })
+
         data = request.session.get('signup_data', {})
         data.update({
-            'lrn_number': request.POST.get('lrn_number'),
+            'lrn_number': lrn,
             'last_school_attended': request.POST.get('last_school_attended'),
             'school_address': request.POST.get('school_address'),
             'gwa_score': request.POST.get('gwa_score'),
@@ -85,7 +99,7 @@ def signup_step4(request):
 
         except Exception as e:
             if 'user' in locals(): user.delete()
-            return render(request, 'ccat_student/signup_step4.html', {'error': str(e)})
+            return render(request, 'ccat_student/signup_step4.html', {'error': f"An error occurred: {str(e)}"})
 
     return render(request, 'ccat_student/signup_step4.html')
 
