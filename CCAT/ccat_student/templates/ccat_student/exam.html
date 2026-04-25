@@ -598,13 +598,29 @@
         }
 
         // ── Submit ────────────────────────────────────────────────────────────
-        function openSubmitModal() {
-            const ans = Object.keys(answers).length;
-            document.getElementById('modalAnswered').textContent   = ans;
-            document.getElementById('modalUnanswered').textContent = TOTAL_QUESTIONS - ans;
-            document.getElementById('modalFlagged').textContent    = flagged.size;
-            document.getElementById('submitModal').classList.remove('hidden');
+function openSubmitModal() {
+    let answeredCount  = 0;
+    let flaggedCount   = 0;
+    let remainingCount = 0;
+
+    for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+        const isAnswered = answers[i] !== undefined;
+        const isFlagged  = flagged.has(i);
+
+        if (isFlagged) {
+            flaggedCount++;
+        } else if (isAnswered) {
+            answeredCount++;
+        } else {
+            remainingCount++;
         }
+    }
+
+    document.getElementById('modalAnswered').textContent   = answeredCount;
+    document.getElementById('modalUnanswered').textContent = remainingCount;
+    document.getElementById('modalFlagged').textContent    = flaggedCount;
+    document.getElementById('submitModal').classList.remove('hidden');
+}
 
         function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
         function submitExam()       { document.getElementById('examForm').submit(); }
