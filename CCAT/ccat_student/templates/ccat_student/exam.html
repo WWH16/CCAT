@@ -111,20 +111,23 @@
                         <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Question Grid</h3>
                         <span id="savedCount" class="text-[10px] font-medium text-primary bg-emerald-50 px-2 py-0.5 rounded">0 / {{ total_questions }} Saved</span>
                     </div>
-                    <div class="overflow-y-auto max-h-72 px-1 pt-1 pb-1" style="scrollbar-width: thin; scrollbar-color: #004d27 #edeeef;">
-                    <div class="grid grid-cols-5 gap-2" id="questionGrid">
-                        {% for q in all_questions %}
-                        <button id="gridBtn{{ forloop.counter0 }}" onclick="jumpToQuestion({{ forloop.counter0 }})"
-                            class="grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold bg-surface-container text-outline transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                            {{ forloop.counter }}
-                        </button>
-                        {% endfor %}
-                    </div>
-                    </div>
-                    <div class="mt-4 space-y-2">
+
+                    <!-- Legends ABOVE the grid now -->
+                    <div class="mb-3 flex items-center gap-4 flex-wrap">
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-primary"></div><span class="text-[10px] text-slate-500">Answered</span></div>
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full border-2 border-primary"></div><span class="text-[10px] text-slate-500">Current</span></div>
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-secondary-container"></div><span class="text-[10px] text-slate-500">Flagged</span></div>
+                    </div>
+
+                    <div class="overflow-y-auto max-h-72 px-1 pt-1 pb-1" style="scrollbar-width: thin; scrollbar-color: #004d27 #edeeef;">
+                        <div class="grid grid-cols-5 gap-2" id="questionGrid">
+                            {% for q in all_questions %}
+                            <button id="gridBtn{{ forloop.counter0 }}" onclick="jumpToQuestion({{ forloop.counter0 }})"
+                                class="grid-btn w-10 h-10 flex items-center justify-center rounded-lg text-xs font-bold bg-surface-container text-outline transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                                {{ forloop.counter }}
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -473,27 +476,27 @@
         // ── Next — auto-clears flag if student has answered ───────────────────
         function nextQuestion() {
             if (currentIndex === TOTAL_QUESTIONS - 1) {
-                // Last question: clear flag if answered, then open submit
-                if (answers[currentIndex] !== undefined && flagged.has(currentIndex)) {
-                    clearFlag(currentIndex, () => openSubmitModal());
-                } else {
-                    openSubmitModal();
-                }
+                openSubmitModal();
                 return;
             }
 
             if (answers[currentIndex] !== undefined) {
-                // Answered — auto-clear flag if present, then move forward
+                // Answered — clear flag if present, then move forward
                 if (flagged.has(currentIndex)) {
-                    clearFlag(currentIndex, () => goToQuestion(currentIndex + 1));
-                } else {
-                    goToQuestion(currentIndex + 1);
+                    flagged.delete(currentIndex);
+                    fetch(SAVE_FLAG_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                        body: JSON.stringify({ index: currentIndex, flagged: false }),
+                    }).catch(err => console.warn('Clear flag failed:', err));
+                    updateGrid();
                 }
+                goToQuestion(currentIndex + 1);
             } else if (flagged.has(currentIndex)) {
-                // Flagged but not answered — allow moving forward, flag stays
+                // Flagged but not answered — move forward, keep flag
                 goToQuestion(currentIndex + 1);
             } else {
-                // Neither — shake card
+                // Neither — shake
                 const card = document.getElementById(`question${currentIndex}`)
                     .querySelector('.bg-surface-container-lowest');
                 card.classList.add('shake', 'border-error');
@@ -536,7 +539,12 @@
                 flagged.delete(currentIndex);
             } else {
                 flagged.add(currentIndex);
-                highestReached = Math.max(highestReached, Math.min(currentIndex + 1, TOTAL_QUESTIONS - 1));
+                // Make sure highestReached includes current so the flag registers in grid
+                highestReached = Math.max(highestReached, currentIndex);
+                // And unlock the next question
+                if (currentIndex + 1 < TOTAL_QUESTIONS) {
+                    highestReached = Math.max(highestReached, currentIndex + 1);
+                }
             }
 
             updateFlagBtn();
@@ -548,7 +556,7 @@
                 body: JSON.stringify({ index: currentIndex, flagged: flagged.has(currentIndex) }),
             }).catch(err => console.warn('Save flag failed:', err));
 
-            if (!wasFlagged) setTimeout(() => nextQuestion(), 200);
+            if (!wasFlagged) setTimeout(() => goToQuestion(currentIndex + 1), 200);
         }
 
         // ── UI Updates ────────────────────────────────────────────────────────
@@ -565,6 +573,7 @@
                 if (i === currentIndex) {
                     btn.classList.add("ring-2", "ring-primary", "bg-white", "text-primary");
                 } else if (flagged.has(i)) {
+                    // Flagged takes priority — even if answered
                     btn.classList.add("bg-secondary-container", "text-on-secondary-container");
                 } else if (answers[i] !== undefined) {
                     btn.classList.add("bg-primary", "text-white");
