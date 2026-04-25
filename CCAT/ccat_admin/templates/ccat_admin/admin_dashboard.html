@@ -24,21 +24,21 @@
 
     <div class="bg-primary/5 border border-primary/20 rounded-xl p-6 hover:-translate-y-1 transition-transform shadow-sm relative overflow-hidden group">
         <div class="flex items-start justify-between relative z-10">
-            <div>
-                <p class="text-[0.65rem] font-bold text-primary uppercase tracking-widest mb-1">Active Session</p>
-                <h3 class="text-xl font-bold text-on-surface truncate max-w-[140px]">
+            <div class="min-w-0 flex-1">
+              <p class="text-[0.65rem] font-bold text-primary uppercase tracking-widest mb-1">Active Session</p>
+              <h3 class="text-xl font-bold text-on-surface truncate max-w-[160px]">
                     {% if active_session %}{{ active_session.session_name }}{% else %}No Active Session{% endif %}
                 </h3>
                 {% if active_session %}
                 <div class="flex items-center gap-2 mt-2">
-                    <span class="text-[10px] font-mono text-primary font-bold bg-white px-2 py-0.5 rounded border border-primary/20">
+                    <span class="text-xs font-mono text-primary font-bold bg-white px-2.5 py-1 rounded border border-primary/20">
                         {{ active_session.key_code }}
                     </span>
                     <button type="button"
                             onclick="copyKeyCode('{{ active_session.key_code }}', this)"
                             title="Copy key to clipboard"
                             class="text-primary/60 hover:text-primary transition-colors focus:outline-none">
-                        <span class="material-symbols-outlined text-[14px] align-middle">content_copy</span>
+                        <span class="material-symbols-outlined text-xl align-middle">content_copy</span>
                     </button>
                 </div>
                 {% else %}
