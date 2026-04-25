@@ -24,4 +24,7 @@ urlpatterns = [
     # Category management
     path('categories/add/', views.category_add, name='category_add'),
     path('categories/<int:category_id>/delete/', views.category_delete, name='category_delete'),
+
+    # Student Records
+    path('student-records/', views.student_records, name='student_records'),
 ]

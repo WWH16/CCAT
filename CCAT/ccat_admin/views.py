@@ -476,3 +476,31 @@ def category_delete(request, category_id):
         cat.delete()
         return JsonResponse({'ok': True})
     return JsonResponse({'ok': False, 'error': 'Invalid request.'})
+
+
+@login_required(login_url='admin_login')
+def student_records(request):
+    if not request.user.is_staff:
+        return redirect('admin_login')
+
+    search = request.GET.get('search', '').strip()
+    
+    # Fetch students with their exam results prefetched
+    students_list = Student.objects.prefetch_related('examresult_set').all().order_by('-date_registered')
+
+    if search:
+        students_list = students_list.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(lrn_number__icontains=search)
+        )
+
+    paginator = Paginator(students_list, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'ccat_admin/student_records.html', {
+        'page_obj': page_obj,
+        'search': search,
+        'total_students': Student.objects.count(),
+    })
