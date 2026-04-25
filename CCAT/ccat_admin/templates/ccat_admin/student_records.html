@@ -1,0 +1,159 @@
+{% extends 'ccat_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Student Records | ISU Palanan Admission{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+    <div>
+        <h1 class="text-3xl md:text-[2.75rem] font-extrabold text-primary tracking-tight leading-tight font-headline">Student Records</h1>
+        <p class="text-sm text-on-surface-variant max-w-xl leading-relaxed mt-2">
+            A comprehensive list of all registered students, their academic background, and current examination status.
+        </p>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-sm font-bold text-outline uppercase tracking-widest">Total Registered: {{ total_students }}</span>
+    </div>
+</div>
+
+<!-- Records Table -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-6">
+
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-lg font-bold text-on-surface whitespace-nowrap font-headline">Master List</h2>
+            {% if search %}
+            <p class="text-xs text-outline mt-0.5">
+                Showing results for "<span class="font-semibold text-on-surface">{{ search }}</span>"
+                &nbsp;·&nbsp;<a href="{% url 'student_records' %}" class="text-primary underline underline-offset-2">Clear search</a>
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Search -->
+        <form method="GET" action="{% url 'student_records' %}" class="flex flex-wrap items-center gap-3">
+            <div class="relative flex-1 min-w-[240px] max-w-sm">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search name or LRN..."
+                    class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm placeholder:text-outline/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                />
+            </div>
+            <button type="submit"
+                class="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-container transition-colors">
+                Search
+            </button>
+        </form>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-surface-container">
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student Name</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">LRN Number</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Last School Attended</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">GWA</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date Registered</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-surface-container">
+                {% for student in page_obj %}
+                <tr class="hover:bg-surface-container-high transition-colors">
+                    <td class="py-4 px-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                                {{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold text-on-surface">{{ student.first_name }} {{ student.last_name }}</div>
+                                <div class="text-[10px] text-outline">{{ student.get_gender_display }} · {{ student.mobile_number }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-2 text-sm text-outline font-mono">{{ student.lrn_number }}</td>
+                    <td class="py-4 px-2 text-sm text-on-surface max-w-[150px] truncate" title="{{ student.last_school_attended }}">
+                        {{ student.last_school_attended }}
+                    </td>
+                    <td class="py-4 px-2 text-sm font-bold text-on-surface">{{ student.gwa_score }}</td>
+                    <td class="py-4 px-2 text-sm text-outline">{{ student.date_registered|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-12 text-center text-outline italic text-sm">
+                        {% if search %}
+                            No students found matching your search.
+                        {% else %}
+                            No students registered yet.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex items-center justify-between">
+        <p class="text-xs text-outline">
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+        </p>
+        <nav aria-label="Pagination">
+            <ul class="inline-flex -space-x-px text-sm">
+
+                <!-- Previous -->
+                <li>
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}"
+                       class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-l-lg hover:bg-surface-container-low transition-colors">
+                        Previous
+                    </a>
+                    {% else %}
+                    <span class="flex items-center justify-center px-3 h-9 leading-tight text-outline/40 bg-white border border-outline-variant/30 rounded-l-lg cursor-not-allowed">
+                        Previous
+                    </span>
+                    {% endif %}
+                </li>
+
+                <!-- Page numbers -->
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li>
+                        <span class="flex items-center justify-center px-4 h-9 text-white border border-primary bg-primary font-bold">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li>
+                        <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}"
+                           class="flex items-center justify-center px-4 h-9 leading-tight text-outline bg-white border border-outline-variant/30 hover:bg-surface-container-low transition-colors">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Next -->
+                <li>
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}"
+                       class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-r-lg hover:bg-surface-container-low transition-colors">
+                        Next
+                    </a>
+                    {% else %}
+                    <span class="flex items-center justify-center px-3 h-9 leading-tight text-outline/40 bg-white border border-outline-variant/30 rounded-r-lg cursor-not-allowed">
+                        Next
+                    </span>
+                    {% endif %}
+                </li>
+
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

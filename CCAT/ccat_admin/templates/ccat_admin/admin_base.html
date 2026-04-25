@@ -101,6 +101,17 @@
             <span class="font-medium text-sm">Dashboard</span>
         </a>
 
+        <a href="{% url 'student_records' %}"
+           class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+           {% if request.resolver_match.url_name == 'student_records' %}
+           bg-white dark:bg-slate-800 text-primary dark:text-emerald-400 shadow-sm
+           {% else %}
+           text-slate-600 dark:text-slate-400 hover:bg-surface-container-low dark:hover:bg-slate-800/50
+           {% endif %}">
+            <span class="material-symbols-outlined">person</span>
+            <span class="font-medium text-sm">Student Records</span>
+        </a>
+
         <a href="{% url 'question_management' %}"
            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all
            {% if request.resolver_match.url_name == 'question_management' %}
