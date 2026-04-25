@@ -121,6 +121,14 @@
                 <td class="px-6 py-4">
                     <div class="flex items-center gap-2 font-mono text-sm bg-surface-container-high rounded px-3 py-1 w-fit border border-outline-variant/20">
                         <span class="text-primary font-bold">{{ key.key_code }}</span>
+                        {% if key.is_active and key.status == 'Active' %}
+                        <button type="button"
+                                onclick="copyKeyCode('{{ key.key_code }}', this)"
+                                title="Copy key to clipboard"
+                                class="ml-1 text-outline hover:text-primary transition-colors focus:outline-none">
+                            <span class="material-symbols-outlined text-[16px] align-middle">content_copy</span>
+                        </button>
+                        {% endif %}
                     </div>
                 </td>
                 <td class="px-6 py-4 text-center">
@@ -138,13 +146,20 @@
                     {% if key.is_active and key.status == 'Active' %}
                         <button type="button"
                                 onclick="showRevokeModal('{{ key.session_name }}', '{% url 'revoke_key' key.id %}')"
-                                class="p-2 rounded-lg hover:bg-error/10 text-error transition-colors">
-                            <span class="material-symbols-outlined text-lg">block</span>
+                                title="Revoke this access key"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-error/30 bg-error/5 hover:bg-error/10 text-error text-[11px] font-bold uppercase tracking-wide transition-colors">
+                            <span class="material-symbols-outlined text-base">block</span>
+                            Revoke
                         </button>
                     {% else %}
-                        <div class="flex items-center justify-end gap-1 text-outline opacity-50">
-                            <span class="text-[9px] font-bold uppercase">Closed</span>
-                            <span class="material-symbols-outlined text-base">lock</span>
+                        <div class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-outline-variant/20 text-outline opacity-40 cursor-not-allowed text-[11px] font-bold uppercase tracking-wide">
+                            {% if key.status == 'Expired' %}
+                                <span class="material-symbols-outlined text-base">schedule</span>
+                                Expired
+                            {% else %}
+                                <span class="material-symbols-outlined text-base">lock</span>
+                                Revoked
+                            {% endif %}
                         </div>
                     {% endif %}
                 </td>
@@ -240,5 +255,8 @@
         </form>
     </div>
 </div>
+<script>
+    const hasActiveKey = {{ active_exists|yesno:"true,false" }};
+</script>
 <script src="{% static 'ccat_admin/js/access_keys.js' %}"></script>
 {% endblock %}

@@ -301,7 +301,7 @@ def access_keys(request):
     page_obj = paginator.get_page(page_number)
 
     # Check if any key is currently active to show/hide the yellow alert
-    active_exists = SessionKey.objects.filter(is_active=True).exists()
+    active_exists = SessionKey.objects.filter(is_active=True, expiry_date__gt=timezone.now()).exists()
 
     return render(request, 'ccat_admin/access_keys.html', {
         'page_obj': page_obj,
@@ -318,8 +318,8 @@ def generate_access_key(request):
         naive_dt = parse_datetime(expiry_date_str)
         aware_dt = timezone.make_aware(naive_dt, timezone.get_current_timezone())
 
-        # Policy: Deactivate all existing active keys first
-        SessionKey.objects.filter(is_active=True).update(is_active=False)
+        # Policy: Only deactivate keys that are still active (not yet expired)
+        SessionKey.objects.filter(is_active=True, expiry_date__gt=timezone.now()).update(is_active=False)
 
         SessionKey.objects.create(
             session_name=session_name,

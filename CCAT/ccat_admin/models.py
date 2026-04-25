@@ -153,10 +153,10 @@ class SessionKey(models.Model):
     @property
     def status(self):
         """Returns a string status for the UI badge."""
-        if not self.is_active:
-            return "Revoked"
         if timezone.now() > self.expiry_date:
             return "Expired"
+        if not self.is_active:
+            return "Revoked"
         if self.used_count >= self.capacity:
             return "Full"
         return "Active"
