@@ -34,6 +34,12 @@
                     <span class="text-[10px] font-mono text-primary font-bold bg-white px-2 py-0.5 rounded border border-primary/20">
                         {{ active_session.key_code }}
                     </span>
+                    <button type="button"
+                            onclick="copyKeyCode('{{ active_session.key_code }}', this)"
+                            title="Copy key to clipboard"
+                            class="text-primary/60 hover:text-primary transition-colors focus:outline-none">
+                        <span class="material-symbols-outlined text-[14px] align-middle">content_copy</span>
+                    </button>
                 </div>
                 {% else %}
                 <p class="text-[10px] text-outline font-medium mt-2 italic">Awaiting key generation</p>
@@ -254,5 +260,6 @@
     {% endif %}
 
 </div>
-
+{% load static %}
+<script src="{% static 'ccat_admin/js/dashboard.js' %}"></script>
 {% endblock %}
