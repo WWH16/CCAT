@@ -65,7 +65,7 @@ class Student(models.Model):
     # --- Step 2: Contact Information ---
     mobile_number = models.CharField(max_length=20)
     alternative_contact = models.CharField(max_length=20, blank=True, null=True)
-    email = models.EmailField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=255)
 
     # Address Fields
     street_address = models.CharField(max_length=255)
@@ -74,10 +74,11 @@ class Student(models.Model):
     province = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
 
-    # --- Step 3: Academic Background (NEW) ---
+    # --- Step 3: Academic Background ---
     last_school_attended = models.CharField(max_length=255)
     school_address = models.CharField(max_length=255)
     lrn_number = models.CharField(max_length=12)
+    track_strand = models.CharField(max_length=150)
 
     # --- Step 4: Course Preferences ---
     first_priority = models.CharField(max_length=10, choices=PROGRAM_CHOICES)

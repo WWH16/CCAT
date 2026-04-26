@@ -54,6 +54,7 @@ def signup_step3(request):
                     'lrn_number': lrn,
                     'last_school_attended': request.POST.get('last_school_attended'),
                     'school_address': request.POST.get('school_address'),
+                    'track_strand': request.POST.get('track_strand'),
                 }
             })
 
@@ -62,6 +63,7 @@ def signup_step3(request):
             'lrn_number': lrn,
             'last_school_attended': request.POST.get('last_school_attended'),
             'school_address': request.POST.get('school_address'),
+            'track_strand': request.POST.get('track_strand'),
         })
         request.session['signup_data'] = data
         return redirect('signup_step4')
