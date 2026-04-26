@@ -117,8 +117,6 @@ def login_view(request):
 
                 if session_key.is_valid():
                     login(request, user)
-                    session_key.used_count += 1
-                    session_key.save()
                     return redirect('exam_instructions')
                 else:
                     messages.error(request, f"Access Key is {session_key.status}.")

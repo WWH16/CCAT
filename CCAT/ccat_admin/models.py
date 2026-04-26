@@ -131,10 +131,6 @@ class SessionKey(models.Model):
     # The unique code (e.g., ISU-A1B2)
     key_code = models.CharField(max_length=12, unique=True)
 
-    # Capacity management
-    capacity = models.PositiveIntegerField(default=50)
-    used_count = models.PositiveIntegerField(default=0)
-
     # Expiration
     expiry_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
@@ -157,14 +153,11 @@ class SessionKey(models.Model):
             return "Expired"
         if not self.is_active:
             return "Revoked"
-        if self.used_count >= self.capacity:
-            return "Full"
         return "Active"
 
     def is_valid(self):
         """Quick check if a student can use this key right now."""
         return (
                 self.is_active and
-                timezone.now() <= self.expiry_date and
-                self.used_count < self.capacity
+                timezone.now() <= self.expiry_date
         )

@@ -326,7 +326,6 @@ def generate_access_key(request):
             key_code=generate_random_key(),
             expiry_date=aware_dt, # Use the aware datetime
             created_by=request.user,
-            capacity=50
         )
     return redirect('access_keys')
 
