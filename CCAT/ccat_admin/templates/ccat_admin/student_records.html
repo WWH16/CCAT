@@ -55,30 +55,32 @@
             <thead>
                 <tr class="border-b border-surface-container">
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student Name</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">LRN Number</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Last School Attended</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date Registered</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Gender</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">LRN</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Mobile</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Email</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Address</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">School</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">1st Priority</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">2nd Priority</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Registered</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-container">
                 {% for student in page_obj %}
-                <tr class="hover:bg-surface-container-high transition-colors">
-                    <td class="py-4 px-2">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
-                                {{ student.first_name|slice:":1"|upper }}{{ student.last_name|slice:":1"|upper }}
-                            </div>
-                            <div>
-                                <div class="text-sm font-semibold text-on-surface">{{ student.first_name }} {{ student.last_name }}</div>
-                                <div class="text-[10px] text-outline">{{ student.get_gender_display }} · {{ student.mobile_number }} · {{ student.email }}</div>
-                            </div>
-                        </div>
+                <tr class="hover:bg-surface-container-high transition-colors border-b border-surface-container">
+                    <td class="py-6 px-6 text-base font-semibold text-on-surface whitespace-nowrap">{{ student.first_name }} {{ student.last_name }}</td>
+                    <td class="py-6 px-6 text-base text-on-surface-variant whitespace-nowrap">{{ student.get_gender_display }}</td>
+                    <td class="py-6 px-6 text-base font-bold text-on-surface font-mono whitespace-nowrap">{{ student.lrn_number }}</td>
+                    <td class="py-6 px-6 text-base text-on-surface-variant font-mono whitespace-nowrap">{{ student.mobile_number }}</td>
+                    <td class="py-6 px-6 text-base text-on-surface-variant">{{ student.email }}</td>
+                    <td class="py-6 px-6 text-sm text-on-surface-variant min-w-[250px] leading-relaxed">
+                        {{ student.barangay }}, {{ student.city_municipality }}, {{ student.province }}
                     </td>
-                    <td class="py-4 px-2 text-sm font-bold text-on-surface">{{ student.lrn_number }}</td>
-                    <td class="py-4 px-2 text-sm text-on-surface max-w-[150px] truncate" title="{{ student.last_school_attended }}">
-                        {{ student.last_school_attended }}
-                    </td>
-                    <td class="py-4 px-2 text-sm text-outline">{{ student.date_registered|date:"M d, Y" }}</td>
+                    <td class="py-6 px-6 text-sm text-on-surface-variant min-w-[200px] leading-relaxed">{{ student.last_school_attended }}</td>
+                    <td class="py-6 px-6 text-sm text-on-surface-variant whitespace-nowrap">{{ student.get_first_priority_display }}</td>
+                    <td class="py-6 px-6 text-sm text-on-surface-variant whitespace-nowrap">{{ student.get_second_priority_display }}</td>
+                    <td class="py-6 px-6 text-sm text-outline whitespace-nowrap">{{ student.date_registered|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
