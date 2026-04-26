@@ -58,6 +58,7 @@
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">Sex</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">LRN</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">Mobile</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">Alt. Contact</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">Email</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">Address</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-4">School</th>
@@ -73,6 +74,7 @@
                     <td class="py-4 px-4 text-base text-on-surface-variant whitespace-nowrap">{{ student.get_sex_display }}</td>
                     <td class="py-4 px-4 text-base font-bold text-on-surface font-mono whitespace-nowrap">{{ student.lrn_number }}</td>
                     <td class="py-4 px-4 text-base text-on-surface-variant font-mono whitespace-nowrap">{{ student.mobile_number }}</td>
+                    <td class="py-4 px-4 text-base text-on-surface-variant font-mono whitespace-nowrap">{{ student.alternative_contact|default:"—" }}</td>
                     <td class="py-4 px-4 text-base text-on-surface-variant">{{ student.email }}</td>
                     <td class="py-4 px-4 text-sm text-on-surface-variant min-w-[250px] leading-relaxed">
                         {{ student.barangay }}, {{ student.city_municipality }}, {{ student.province }}
