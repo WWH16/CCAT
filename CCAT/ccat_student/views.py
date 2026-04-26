@@ -284,13 +284,8 @@ def exam_start(request):
                 except Option.DoesNotExist:
                     pass
 
-        score_pct = round((correct / total) * 100, 2) if total > 0 else 0
-        status    = 'Pass' if score_pct >= 50 else 'Fail'
-
         ExamResult.objects.create(
             student=student,
-            score_percentage=score_pct,
-            status=status,
             total_correct=correct,  # ADD
             total_questions=total,  # ADD
             breakdown=breakdown,  # ADD

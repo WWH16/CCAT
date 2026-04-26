@@ -24,30 +24,15 @@
                         <h2 class="text-xl font-black text-slate-800 leading-tight">{{ student.first_name }} {{ student.last_name }}</h2>
                         <p class="text-slate-500 text-xs font-semibold mt-0.5">LRN: {{ student.lrn_number }}</p>
                     </div>
-                    <div class="px-4 py-1.5 {% if result.status == 'Pass' %}bg-primary text-white{% else %}bg-red-600 text-white{% endif %} rounded-lg font-bold text-[10px] tracking-widest flex items-center gap-1 shadow-sm uppercase">
-                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">
-                            {% if result.status == 'Pass' %}check_circle{% else %}cancel{% endif %}
-                        </span>
-                        {{ result.status }}
-                    </div>
                 </div>
 
                 <!-- Results Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-6">
                     <div class="md:col-span-4 bg-slate-50 rounded-xl p-5 flex flex-col items-center justify-center text-center border border-slate-100">
-                        <span class="text-[9px] text-slate-400 font-bold tracking-widest mb-3 uppercase">Composite</span>
-                        <div class="relative w-28 h-28 flex items-center justify-center">
-                            <svg class="absolute inset-0 w-full h-full -rotate-90">
-                                <circle class="text-slate-200" cx="56" cy="56" fill="transparent" r="50" stroke="currentColor" stroke-width="6"></circle>
-                                <circle class="{% if result.status == 'Pass' %}text-primary{% else %}text-red-500{% endif %}" cx="56" cy="56" fill="transparent" r="50" stroke="currentColor"
-                                    stroke-dasharray="314"
-                                    style="stroke-dashoffset: calc(314 - (314 * {{ result.score_percentage }}) / 100);"
-                                    stroke-width="6" stroke-linecap="round"></circle>
-                            </svg>
-                            <div class="text-center">
-                                <span class="text-3xl font-black {% if result.status == 'Pass' %}text-primary{% else %}text-red-600{% endif %}">{{ total_correct }}</span>
-                                <span class="text-sm text-slate-400 font-bold">/{{ total_questions }}</span>
-                            </div>
+                        <span class="text-[9px] text-slate-400 font-bold tracking-widest mb-3 uppercase">Correct Answers</span>
+                        <div class="text-center">
+                            <span class="text-5xl font-black text-primary">{{ total_correct }}</span>
+                            <span class="text-xl text-slate-400 font-bold">/{{ total_questions }}</span>
                         </div>
                     </div>
 

@@ -347,25 +347,20 @@ def admin_dashboard(request):
     # ── Stat card counts ──────────────────────────────────────────────────────
     total_students = Student.objects.count()
     total_examinees = ExamResult.objects.values('student').distinct().count()
-    passed_count = ExamResult.objects.filter(status='Pass').count()
-    failed_count = ExamResult.objects.filter(status='Fail').count()
     # Get the currently active session key (if revoked or expired) to show in the admin panel
     active_session = SessionKey.objects.filter(is_active=True,expiry_date__gt=timezone.now()).first()
 
     # ── Search & filter ───────────────────────────────────────────────────────
     search = request.GET.get('search', '').strip()
-    status_filter = request.GET.get('status', '').strip()
 
-    results = ExamResult.objects.select_related('student').order_by('-date_taken')
+    results = ExamResult.objects.all().order_by('-date_taken')
 
     if search:
         results = results.filter(
-            Q(student__first_name__icontains=search) |
-            Q(student__last_name__icontains=search)
+            models.Q(student__first_name__icontains=search) |
+            models.Q(student__last_name__icontains=search)
         )
 
-    if status_filter:
-        results = results.filter(status=status_filter)
 
     # ── Pagination (20 per page) ───────────────────────────────────────────────
     paginator = Paginator(results, 20)
@@ -375,13 +370,10 @@ def admin_dashboard(request):
     context = {
         'total_students': total_students,
         'total_examinees': total_examinees,
-        'passed_count': passed_count,
-        'failed_count': failed_count,
         'active_session': active_session,
         'page_obj': page_obj,
         # Preserve filter values so template can re-populate inputs and build pagination links
         'search': search,
-        'status_filter': status_filter,
     }
     return render(request, 'ccat_admin/admin_dashboard.html', context)
 
@@ -416,8 +408,6 @@ def admin_export_csv(request):
         'Last School Attended',
         'First Preference',
         'Second Preference',
-        'Score (%)',
-        'Status',
         'Date Taken',
     ])
 
@@ -444,8 +434,6 @@ def admin_export_csv(request):
             s.last_school_attended,
             s.get_first_priority_display(),
             s.get_second_priority_display(),
-            result.score_percentage,
-            result.status,
             result.date_taken.strftime('%Y-%m-%d %H:%M:%S'),
         ])
 

@@ -99,8 +99,6 @@ class Student(models.Model):
 
 class ExamResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    score_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    status = models.CharField(max_length=20)
     date_taken = models.DateTimeField(auto_now_add=True)
     total_correct = models.PositiveIntegerField(default=0)      # ADD
     total_questions = models.PositiveIntegerField(default=0)    # ADD
