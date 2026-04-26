@@ -81,7 +81,6 @@ class Student(models.Model):
     # --- Step 4: Course Preferences ---
     first_priority = models.CharField(max_length=10, choices=PROGRAM_CHOICES)
     second_priority = models.CharField(max_length=10, choices=PROGRAM_CHOICES)
-    third_priority = models.CharField(max_length=10, choices=PROGRAM_CHOICES)
 
     # System Tracking
     date_registered = models.DateTimeField(auto_now_add=True)
@@ -91,10 +90,10 @@ class Student(models.Model):
 
     def clean(self):
         super().clean()
-        if self.first_priority and self.second_priority and self.third_priority:
-            priorities = [self.first_priority, self.second_priority, self.third_priority]
-            if len(set(priorities)) < 3:
-                raise ValidationError("Please select three different courses for your priorities.")
+        if self.first_priority and self.second_priority:
+            priorities = [self.first_priority, self.second_priority]
+            if len(set(priorities)) < 2:
+                raise ValidationError("Please select two different courses for your priorities.")
 
 class ExamResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)

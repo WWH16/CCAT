@@ -73,11 +73,10 @@ def signup_step4(request):
     if request.method == 'POST':
         p1 = request.POST.get('first_priority')
         p2 = request.POST.get('second_priority')
-        p3 = request.POST.get('third_priority')
 
-        if not all([p1, p2, p3]) or len({p1, p2, p3}) < 3:
+        if not all([p1, p2]) or len({p1, p2}) < 2:
             return render(request, 'ccat_student/signup_step4.html',
-                          {'error': 'Please select three unique priorities.'})
+                          {'error': 'Please select two unique priorities.'})
 
         username = data.get('lrn_number')
         if not username:
@@ -89,8 +88,7 @@ def signup_step4(request):
                 user=user,
                 **data,
                 first_priority=p1,
-                second_priority=p2,
-                third_priority=p3
+                second_priority=p2
             )
             del request.session['signup_data']
             return render(request, 'ccat_student/success.html', {'lrn': username})

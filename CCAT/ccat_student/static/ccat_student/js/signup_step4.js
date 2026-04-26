@@ -1,8 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const selects = [
         document.querySelector('select[name="first_priority"]'),
-        document.querySelector('select[name="second_priority"]'),
-        document.querySelector('select[name="third_priority"]')
+        document.querySelector('select[name="second_priority"]')
     ];
 
     function updateOptions() {
