@@ -100,9 +100,15 @@ class Student(models.Model):
 class ExamResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     date_taken = models.DateTimeField(auto_now_add=True)
-    total_correct = models.PositiveIntegerField(default=0)      # ADD
-    total_questions = models.PositiveIntegerField(default=0)    # ADD
-    breakdown = models.JSONField(default=dict)                  # ADD
+    total_correct = models.PositiveIntegerField(default=0)
+    total_questions = models.PositiveIntegerField(default=0)
+    breakdown = models.JSONField(default=dict)
+
+    @property
+    def score_percentage(self):
+        if self.total_questions > 0:
+            return (self.total_correct / self.total_questions) * 100
+        return 0.0
 
 
 class ExamConfig(models.Model):

@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+
+from . import models
 from .models import Student, ExamResult, Question, Category, Option, ExamConfig, SessionKey
 import csv, string, random
 from django.utils import timezone
 from django.http import HttpResponse
-from django.utils.dateparse import parse_datetime # Add this import at the top
+from django.utils.dateparse import parse_datetime
 from django.core.paginator import Paginator
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Avg, Max
 from django.http import JsonResponse
 
 
@@ -350,6 +352,12 @@ def admin_dashboard(request):
     # Get the currently active session key (if revoked or expired) to show in the admin panel
     active_session = SessionKey.objects.filter(is_active=True,expiry_date__gt=timezone.now()).first()
 
+    # get average and highest score across all exam results for the summary cards
+    results = ExamResult.objects.all()
+    percentages = [r.score_percentage for r in results]
+    avg_score = sum(percentages) / len(percentages) if percentages else 0
+    highest_score = max([r.total_correct for r in results]) if results.exists() else 0
+
     # ── Search & filter ───────────────────────────────────────────────────────
     search = request.GET.get('search', '').strip()
 
@@ -371,8 +379,10 @@ def admin_dashboard(request):
         'total_students': total_students,
         'total_examinees': total_examinees,
         'active_session': active_session,
+        'total_questions': Question.objects.count(),
+        'avg_score': f"{avg_score:.1f}%" if percentages else "0",
+        'highest_score': f"{highest_score}" if results.exists() else "0",
         'page_obj': page_obj,
-        # Preserve filter values so template can re-populate inputs and build pagination links
         'search': search,
     }
     return render(request, 'ccat_admin/admin_dashboard.html', context)
