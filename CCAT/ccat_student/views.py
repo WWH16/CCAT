@@ -88,7 +88,15 @@ def signup_step4(request):
             return redirect('signup_step1')
 
         try:
-            user = User.objects.create_user(username=username, password=username)
+            user = User.objects.create_user(
+                username=username, 
+                password=username,
+                first_name=data.get('first_name', ''),
+                last_name=data.get('last_name', ''),
+                email=data.get('email', '')
+            )
+            
+            # Create the Student profile
             Student.objects.create(
                 user=user,
                 **data,
