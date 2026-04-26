@@ -20,7 +20,7 @@ def signup_step1(request):
             'last_name': request.POST.get('last_name'),
             'middle_initial': request.POST.get('middle_initial'),
             'date_of_birth': request.POST.get('date_of_birth'),
-            'gender': request.POST.get('gender'),
+            'sex': request.POST.get('sex'),
         }
         return redirect('signup_step2')
     return render(request, 'ccat_student/signup_step1.html', {'form_data': request.session.get('signup_data', {})})

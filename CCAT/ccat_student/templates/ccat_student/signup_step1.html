@@ -73,16 +73,16 @@
                                type="date"/>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Gender</label>
+                        <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Sex</label>
                         <div class="grid grid-cols-2 gap-2">
                             <label class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-emerald-50 transition-all has-[:checked]:bg-primary/5 has-[:checked]:border-primary">
-                                <input class="w-3 h-3 text-primary focus:ring-0 border-slate-300" name="gender" value="M" type="radio"
-                                       {% if form_data.gender == 'M' %}checked{% endif %} required/>
+                                <input class="w-3 h-3 text-primary focus:ring-0 border-slate-300" name="sex" value="M" type="radio"
+                                       {% if form_data.sex == 'M' %}checked{% endif %} required/>
                                 <span class="text-[11px] font-bold text-slate-600">MALE</span>
                             </label>
                             <label class="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-emerald-50 transition-all has-[:checked]:bg-primary/5 has-[:checked]:border-primary">
-                                <input class="w-3 h-3 text-primary focus:ring-0 border-slate-300" name="gender" value="F" type="radio"
-                                       {% if form_data.gender == 'F' %}checked{% endif %}/>
+                                <input class="w-3 h-3 text-primary focus:ring-0 border-slate-300" name="sex" value="F" type="radio"
+                                       {% if form_data.sex == 'F' %}checked{% endif %}/>
                                 <span class="text-[11px] font-bold text-slate-600">FEMALE</span>
                             </label>
                         </div>

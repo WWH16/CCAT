@@ -45,7 +45,7 @@ class Option(models.Model):
 
 
 class Student(models.Model):
-    GENDER_CHOICES = [('M', 'Male'), ('F', 'Female')]
+    SEX_CHOICES = [('M', 'Male'), ('F', 'Female')]
 
     PROGRAM_CHOICES = [
         ('bsit', 'Bachelor of Science in Information Technology (BSIT)'),
@@ -60,7 +60,7 @@ class Student(models.Model):
     last_name = models.CharField(max_length=100)
     middle_initial = models.CharField(max_length=5, blank=True, null=True)
     date_of_birth = models.DateField()
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES)
 
     # --- Step 2: Contact Information ---
     mobile_number = models.CharField(max_length=20)
