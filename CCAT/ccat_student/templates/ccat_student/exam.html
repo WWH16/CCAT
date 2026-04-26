@@ -532,18 +532,23 @@
         }
 
         // ── Flag (manual toggle) ──────────────────────────────────────────────
+        let flagDebounce = false;
+
         function toggleFlag() {
-            const wasFlagged = flagged.has(currentIndex);
+            if (flagDebounce) return;
+            flagDebounce = true;
+            setTimeout(() => flagDebounce = false, 400);
+
+            const idx = currentIndex; // capture index immediately
+            const wasFlagged = flagged.has(idx);
 
             if (wasFlagged) {
-                flagged.delete(currentIndex);
+                flagged.delete(idx);
             } else {
-                flagged.add(currentIndex);
-                // Make sure highestReached includes current so the flag registers in grid
-                highestReached = Math.max(highestReached, currentIndex);
-                // And unlock the next question
-                if (currentIndex + 1 < TOTAL_QUESTIONS) {
-                    highestReached = Math.max(highestReached, currentIndex + 1);
+                flagged.add(idx);
+                highestReached = Math.max(highestReached, idx);
+                if (idx + 1 < TOTAL_QUESTIONS) {
+                    highestReached = Math.max(highestReached, idx + 1);
                 }
             }
 
@@ -553,10 +558,13 @@
             fetch(SAVE_FLAG_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
-                body: JSON.stringify({ index: currentIndex, flagged: flagged.has(currentIndex) }),
+                body: JSON.stringify({ index: idx, flagged: flagged.has(idx) }),
             }).catch(err => console.warn('Save flag failed:', err));
 
-            if (!wasFlagged) setTimeout(() => goToQuestion(currentIndex + 1), 200);
+            // Navigate only after state is fully committed, using captured idx
+            if (!wasFlagged) {
+                goToQuestion(idx + 1);
+            }
         }
 
         // ── UI Updates ────────────────────────────────────────────────────────
