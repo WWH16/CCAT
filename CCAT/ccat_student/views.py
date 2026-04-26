@@ -172,6 +172,9 @@ def exam_instructions(request):
     active_session = SessionKey.objects.filter(is_active=True).first()
     session_name = active_session.session_name if active_session else "General Admission"
 
+    # Join category names to display as exam coverage
+    exam_coverage = ", ".join([cat.name for cat in categories]) if categories else "No categories defined"
+
     context = {
         'student': student,
         'config': config,
@@ -179,6 +182,7 @@ def exam_instructions(request):
         'total_sections': total_sections,
         'categorys': categories,
         'session_name': session_name,
+        'exam_coverage': exam_coverage,
     }
     return render(request, 'ccat_student/exam_instructions.html', context)
 
