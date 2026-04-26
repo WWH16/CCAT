@@ -321,6 +321,8 @@
                 break;
             }
         }
+            catSelect.disabled = true;
+            document.getElementById('editCategoryHidden').value = catSelect.value;
 
         const row = btn.closest('tr');
         const options = JSON.parse(row.dataset.options);
