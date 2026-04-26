@@ -65,6 +65,7 @@ class Student(models.Model):
     # --- Step 2: Contact Information ---
     mobile_number = models.CharField(max_length=20)
     alternative_contact = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True)
 
     # Address Fields
     street_address = models.CharField(max_length=255)

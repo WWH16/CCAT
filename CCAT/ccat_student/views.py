@@ -31,6 +31,7 @@ def signup_step2(request):
         data.update({
             'mobile_number': request.POST.get('mobile_number'),
             'alternative_contact': request.POST.get('alternative_contact'),
+            'email': request.POST.get('email'),
             'street_address': request.POST.get('street_address'),
             'barangay': request.POST.get('barangay'),
             'city_municipality': request.POST.get('city_municipality'),
