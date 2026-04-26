@@ -57,7 +57,6 @@
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student Name</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">LRN Number</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Last School Attended</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">GWA</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date Registered</th>
                 </tr>
             </thead>
@@ -79,7 +78,6 @@
                     <td class="py-4 px-2 text-sm text-on-surface max-w-[150px] truncate" title="{{ student.last_school_attended }}">
                         {{ student.last_school_attended }}
                     </td>
-                    <td class="py-4 px-2 text-sm font-bold text-on-surface">{{ student.gwa_score }}</td>
                     <td class="py-4 px-2 text-sm text-outline">{{ student.date_registered|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}

@@ -76,8 +76,7 @@ class Student(models.Model):
     # --- Step 3: Academic Background (NEW) ---
     last_school_attended = models.CharField(max_length=255)
     school_address = models.CharField(max_length=255)
-    lrn_number = models.CharField(max_length=12)  # LRN is usually 12 digits
-    gwa_score = models.DecimalField(max_digits=5, decimal_places=2)  # e.g., 99.99
+    lrn_number = models.CharField(max_length=12)
 
     # --- Step 4: Course Preferences ---
     first_priority = models.CharField(max_length=10, choices=PROGRAM_CHOICES)
