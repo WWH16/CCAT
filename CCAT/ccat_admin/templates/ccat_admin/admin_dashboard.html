@@ -111,6 +111,11 @@
                 <tr class="border-b border-surface-container">
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student Name</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Student ID</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Score</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Math</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Science</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">English</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">AR</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date Taken</th>
                 </tr>
             </thead>
@@ -126,6 +131,13 @@
                         </div>
                     </td>
                     <td class="py-4 px-2 text-sm text-outline font-mono">{{ result.student.lrn_number }}</td>
+                    <td class="py-4 px-2 text-sm font-bold text-on-surface">
+                        {{ result.total_correct }} <span class="text-outline font-normal">/ {{ result.total_questions }}</span>
+                    </td>
+                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.Math.correct|default:"0" }}</span>/{{ result.breakdown.Math.total|default:"0" }}</td>
+                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.Science.correct|default:"0" }}</span>/{{ result.breakdown.Science.total|default:"0" }}</td>
+                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.English.correct|default:"0" }}</span>/{{ result.breakdown.English.total|default:"0" }}</td>
+                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.AR.correct|default:"0" }}</span>/{{ result.breakdown.AR.total|default:"0" }}</td>
                     <td class="py-4 px-2 text-sm text-outline">{{ result.date_taken|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}
