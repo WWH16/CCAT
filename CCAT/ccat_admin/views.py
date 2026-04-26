@@ -408,6 +408,12 @@ def admin_export_csv(request):
         'Last School Attended',
         'First Preference',
         'Second Preference',
+        'Total Correct',
+        'Total Questions',
+        'Math Score',
+        'Science Score',
+        'English Score',
+        'AR Score',
         'Date Taken',
     ])
 
@@ -419,6 +425,7 @@ def admin_export_csv(request):
 
     for result in results:
         s = result.student
+        b = result.breakdown
         writer.writerow([
             s.last_name,
             s.first_name,
@@ -434,6 +441,12 @@ def admin_export_csv(request):
             s.last_school_attended,
             s.get_first_priority_display(),
             s.get_second_priority_display(),
+            result.total_correct,
+            result.total_questions,
+            f"{b.get('Math', {}).get('correct', 0)}/{b.get('Math', {}).get('total', 0)}",
+            f"{b.get('Science', {}).get('correct', 0)}/{b.get('Science', {}).get('total', 0)}",
+            f"{b.get('English', {}).get('correct', 0)}/{b.get('English', {}).get('total', 0)}",
+            f"{b.get('AR', {}).get('correct', 0)}/{b.get('AR', {}).get('total', 0)}",
             result.date_taken.strftime('%Y-%m-%d %H:%M:%S'),
         ])
 
