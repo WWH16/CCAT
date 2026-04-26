@@ -48,9 +48,9 @@ class Student(models.Model):
     GENDER_CHOICES = [('M', 'Male'), ('F', 'Female')]
 
     PROGRAM_CHOICES = [
-        ('bsit', 'Bachelor of Science in Information Technology'),
-        ('bat', 'Bachelor of Agricultural Technology'),
-        ('beed', 'Bachelor of Elementary Education'),
+        ('bsit', 'Bachelor of Science in Information Technology (BSIT)'),
+        ('bsa', 'Bachelor of Science in Agriculture (BSA)'),
+        ('beed', 'Bachelor of Elementary Education (BEED)'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')

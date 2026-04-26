@@ -78,8 +78,10 @@ def signup_step4(request):
         p2 = request.POST.get('second_priority')
 
         if not all([p1, p2]) or len({p1, p2}) < 2:
-            return render(request, 'ccat_student/signup_step4.html',
-                          {'error': 'Please select two unique priorities.'})
+            return render(request, 'ccat_student/signup_step4.html', {
+                'program_choices': Student.PROGRAM_CHOICES,
+                'error': 'Please select two unique priorities.'
+            })
 
         username = data.get('lrn_number')
         if not username:
@@ -98,9 +100,14 @@ def signup_step4(request):
 
         except Exception as e:
             if 'user' in locals(): user.delete()
-            return render(request, 'ccat_student/signup_step4.html', {'error': f"An error occurred: {str(e)}"})
+            return render(request, 'ccat_student/signup_step4.html', {
+                'program_choices': Student.PROGRAM_CHOICES,
+                'error': f"An error occurred: {str(e)}"
+            })
 
-    return render(request, 'ccat_student/signup_step4.html')
+    return render(request, 'ccat_student/signup_step4.html', {
+        'program_choices': Student.PROGRAM_CHOICES,
+    })
 
 
 def login_view(request):
