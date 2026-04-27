@@ -27,4 +27,6 @@ urlpatterns = [
 
     # Student Records
     path('student-records/', views.student_records, name='student_records'),
+
+    path('students/<int:student_id>/edit/', views.student_edit, name='student_edit'),
 ]

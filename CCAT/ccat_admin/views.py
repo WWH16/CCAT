@@ -512,3 +512,29 @@ def student_records(request):
         'search': search,
         'total_students': Student.objects.count(),
     })
+
+@login_required(login_url='admin_login')
+def student_edit(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    if request.method == 'POST':
+        student.first_name         = request.POST.get('first_name', '').strip()
+        student.last_name          = request.POST.get('last_name', '').strip()
+        student.middle_initial     = request.POST.get('middle_initial', '').strip() or None
+        student.date_of_birth      = request.POST.get('date_of_birth')
+        student.sex                = request.POST.get('sex')
+        student.mobile_number      = request.POST.get('mobile_number', '').strip()
+        student.alternative_contact= request.POST.get('alternative_contact', '').strip() or None
+        student.email              = request.POST.get('email', '').strip()
+        student.street_address     = request.POST.get('street_address', '').strip()
+        student.barangay           = request.POST.get('barangay', '').strip()
+        student.city_municipality  = request.POST.get('city_municipality', '').strip()
+        student.province           = request.POST.get('province', '').strip()
+        student.zip_code           = request.POST.get('zip_code', '').strip()
+        student.last_school_attended = request.POST.get('last_school_attended', '').strip()
+        student.school_address     = request.POST.get('school_address', '').strip()
+        student.lrn_number         = request.POST.get('lrn_number', '').strip()
+        student.track_strand       = request.POST.get('track_strand', '').strip()
+        student.first_priority     = request.POST.get('first_priority')
+        student.second_priority    = request.POST.get('second_priority')
+        student.save()
+    return redirect('student_records')
