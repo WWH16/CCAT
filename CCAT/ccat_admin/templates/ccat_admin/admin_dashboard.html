@@ -88,10 +88,10 @@
     <div class="flex items-start justify-between">
         <div>
             <p class="text-[0.65rem] font-bold text-outline uppercase tracking-widest mb-1">Highest Score</p>
-            <h3 class="text-3xl font-bold text-on-surface">{{ highest_score|default:"—" }}</h3>
+            <h3 class="text-3xl font-bold text-on-surface">{{ highest_score|default:"—" }}<span class="text-lg text-outline font-medium">/{{ total_questions }}</span></h3>
                 <p class="text-xs text-primary font-medium mt-2 flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">emoji_events</span>
-                    Top score out of {{ total_questions }} items
+                    Top score among all examinees
                 </p>
         </div>
         <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
