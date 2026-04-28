@@ -511,6 +511,7 @@ def student_records(request):
         'page_obj': page_obj,
         'search': search,
         'total_students': Student.objects.count(),
+        'program_choices': Student.PROGRAM_CHOICES,
     })
 
 @login_required(login_url='admin_login')
