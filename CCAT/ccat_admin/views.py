@@ -352,11 +352,10 @@ def admin_dashboard(request):
     # Get the currently active session key (if revoked or expired) to show in the admin panel
     active_session = SessionKey.objects.filter(is_active=True,expiry_date__gt=timezone.now()).first()
 
-    # get average and highest score across all exam results for the summary cards
-    results = ExamResult.objects.all()
-    percentages = [r.score_percentage for r in results]
-    avg_score = sum(percentages) / len(percentages) if percentages else 0
-    highest_score = max([r.total_correct for r in results]) if results.exists() else 0
+    # get highest and lowest score across all exam results for the summary cards
+    results_qs = ExamResult.objects.all()
+    highest_score = max([r.total_correct for r in results_qs]) if results_qs.exists() else None
+    lowest_score = min([r.total_correct for r in results_qs]) if results_qs.exists() else None
 
     # ── Search & filter ───────────────────────────────────────────────────────
     search = request.GET.get('search', '').strip()
@@ -380,8 +379,8 @@ def admin_dashboard(request):
         'total_examinees': total_examinees,
         'active_session': active_session,
         'total_questions': Question.objects.count(),
-        'avg_score': f"{avg_score:.1f}%" if percentages else "0",
-        'highest_score': f"{highest_score}" if results.exists() else "0",
+        'lowest_score': lowest_score,
+        'highest_score': highest_score,
         'page_obj': page_obj,
         'search': search,
     }
