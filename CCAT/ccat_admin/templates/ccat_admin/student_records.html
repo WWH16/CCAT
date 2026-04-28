@@ -401,10 +401,45 @@ function openEditModal(btn) {
         if (el) el.value = d[f] ?? '';
     });
 
+    updatePriorityOptions();
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
 }
+
+function updatePriorityOptions() {
+    const firstPriority = document.getElementById('edit_first_priority');
+    const secondPriority = document.getElementById('edit_second_priority');
+    
+    if (!firstPriority || !secondPriority) return;
+
+    const firstVal = firstPriority.value;
+    const secondVal = secondPriority.value;
+
+    // Update second priority options based on first priority selection
+    Array.from(secondPriority.options).forEach(option => {
+        option.disabled = option.value === firstVal && firstVal !== "";
+    });
+
+    // Update first priority options based on second priority selection
+    Array.from(firstPriority.options).forEach(option => {
+        option.disabled = option.value === secondVal && secondVal !== "";
+    });
+}
+
+// Add event listeners for priority changes
+document.addEventListener('DOMContentLoaded', function() {
+    const firstPriority = document.getElementById('edit_first_priority');
+    const secondPriority = document.getElementById('edit_second_priority');
+    
+    if (firstPriority) {
+        firstPriority.addEventListener('change', updatePriorityOptions);
+    }
+    if (secondPriority) {
+        secondPriority.addEventListener('change', updatePriorityOptions);
+    }
+});
 
 function closeEditModal() {
     const modal = document.getElementById('editModal');
