@@ -359,8 +359,9 @@ def admin_dashboard(request):
 
     # ── Search & filter ───────────────────────────────────────────────────────
     search = request.GET.get('search', '').strip()
+    session_filter = request.GET.get('session', '').strip()
 
-    results = ExamResult.objects.all().order_by('-date_taken')
+    results = ExamResult.objects.select_related('student', 'session_key').order_by('-date_taken')
 
     if search:
         results = results.filter(
@@ -369,11 +370,16 @@ def admin_dashboard(request):
             Q(student__lrn_number__icontains=search)
         )
 
+    if session_filter:
+        results = results.filter(session_key__id=session_filter)
+
 
     # ── Pagination (20 per page) ───────────────────────────────────────────────
     paginator = Paginator(results, 20)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
+
+    all_sessions = SessionKey.objects.order_by('-created_at')
 
     context = {
         'total_students': total_students,
@@ -384,6 +390,8 @@ def admin_dashboard(request):
         'highest_score': highest_score,
         'page_obj': page_obj,
         'search': search,
+        'session_filter': session_filter,
+        'all_sessions': all_sessions,
     }
     return render(request, 'ccat_admin/admin_dashboard.html', context)
 
@@ -429,7 +437,7 @@ def admin_export_csv(request):
 
     results = (
         ExamResult.objects
-        .select_related('student')
+        .select_related('student', 'session_key')
         .order_by('student__last_name', 'student__first_name')
     )
 

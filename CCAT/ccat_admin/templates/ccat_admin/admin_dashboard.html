@@ -131,7 +131,7 @@
         </div>
 
         <!-- Search & Filter — GET form so params appear in URL -->
-        <form method="GET" action="{% url 'admin_dashboard' %}" class="flex flex-wrap items-center gap-3">
+            <form method="GET" action="{% url 'admin_dashboard' %}" class="flex flex-wrap items-center gap-3">
             <div class="relative flex-1 min-w-[180px] max-w-xs">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
                 <input
@@ -142,10 +142,24 @@
                     class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm placeholder:text-outline/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
             </div>
+            <select name="session"
+                    class="py-2 px-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
+                <option value="">All Sessions</option>
+                {% for s in all_sessions %}
+                <option value="{{ s.id }}" {% if session_filter == s.id|stringformat:"s" %}selected{% endif %}>
+                    {{ s.session_name }}{% if s.status == 'Active' %} ★{% endif %}
+                </option>
+                {% endfor %}
+            </select>
             <button type="submit"
                 class="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-container transition-colors">
                 Search
             </button>
+            {% if search or session_filter %}
+            <a href="{% url 'admin_dashboard' %}" class="px-3 py-2 text-sm text-outline hover:text-on-surface transition-colors">
+                Clear
+            </a>
+            {% endif %}
         </form>
     </div>
 

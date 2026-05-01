@@ -100,6 +100,7 @@ class Student(models.Model):
 class ExamResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     date_taken = models.DateTimeField(auto_now_add=True)
+    session_key = models.ForeignKey('SessionKey', on_delete=models.SET_NULL, null=True, blank=True)
     total_correct = models.PositiveIntegerField(default=0)
     total_questions = models.PositiveIntegerField(default=0)
     breakdown = models.JSONField(default=dict)

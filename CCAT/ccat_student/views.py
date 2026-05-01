@@ -292,11 +292,13 @@ def exam_start(request):
                 except Option.DoesNotExist:
                     pass
 
+        active_key = SessionKey.objects.filter(is_active=True, expiry_date__gt=timezone.now()).first()
         ExamResult.objects.create(
             student=student,
-            total_correct=correct,  # ADD
-            total_questions=total,  # ADD
-            breakdown=breakdown,  # ADD
+            total_correct=correct,
+            total_questions=total,
+            breakdown=breakdown,
+            session_key=active_key,
         )
 
         for key in ['exam_question_order', 'exam_option_order', 'exam_sections',
