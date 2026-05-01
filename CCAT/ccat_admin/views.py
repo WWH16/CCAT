@@ -432,6 +432,7 @@ def admin_export_csv(request):
         'Science Score',
         'English Score',
         'AR Score',
+        'Session',
         'Date Taken',
     ])
 
@@ -465,6 +466,7 @@ def admin_export_csv(request):
             f"{b.get('Science', {}).get('correct', 0)}/{b.get('Science', {}).get('total', 0)}",
             f"{b.get('English', {}).get('correct', 0)}/{b.get('English', {}).get('total', 0)}",
             f"{b.get('AR', {}).get('correct', 0)}/{b.get('AR', {}).get('total', 0)}",
+            result.session_key.session_name if result.session_key else 'N/A',
             result.date_taken.strftime('%Y-%m-%d %H:%M:%S'),
         ])
 
