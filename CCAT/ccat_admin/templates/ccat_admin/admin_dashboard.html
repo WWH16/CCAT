@@ -120,11 +120,10 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
             <h2 class="text-lg font-bold text-on-surface whitespace-nowrap font-headline">Admission Test Results</h2>
-            {% if search or status_filter %}
+            {% if search or session_filter %}
             <p class="text-xs text-outline mt-0.5">
                 Showing filtered results
                 {% if search %} for "<span class="font-semibold text-on-surface">{{ search }}</span>"{% endif %}
-                {% if status_filter %} — Status: <span class="font-semibold text-on-surface">{{ status_filter }}</span>{% endif %}
                 &nbsp;·&nbsp;<a href="{% url 'admin_dashboard' %}" class="text-primary underline underline-offset-2">Clear filters</a>
             </p>
             {% endif %}
@@ -151,15 +150,20 @@
                 </option>
                 {% endfor %}
             </select>
-            <button type="submit"
-                class="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-container transition-colors">
-                Search
-            </button>
-            {% if search or session_filter %}
-            <a href="{% url 'admin_dashboard' %}" class="px-3 py-2 text-sm text-outline hover:text-on-surface transition-colors">
-                Clear
-            </a>
-            {% endif %}
+            <div class="flex items-center gap-2">
+                {% if search or session_filter %}
+                <a href="{% url 'admin_dashboard' %}" 
+                   title="Clear filters"
+                   class="p-2 text-outline hover:text-on-surface hover:bg-surface-container rounded-lg transition-all border border-outline-variant/30"
+                   aria-label="Clear filters">
+                    <span class="material-symbols-outlined text-xl block">restart_alt</span>
+                </a>
+                {% endif %}
+                <button type="submit"
+                    class="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-container transition-colors shadow-sm">
+                    Search
+                </button>
+            </div>
         </form>
     </div>
 
