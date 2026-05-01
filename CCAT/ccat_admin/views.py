@@ -364,8 +364,9 @@ def admin_dashboard(request):
 
     if search:
         results = results.filter(
-            models.Q(student__first_name__icontains=search) |
-            models.Q(student__last_name__icontains=search)
+            Q(student__first_name__icontains=search) |
+            Q(student__last_name__icontains=search) |
+            Q(student__lrn_number__icontains=search)
         )
 
 
