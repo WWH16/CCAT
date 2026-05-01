@@ -147,7 +147,7 @@
                 <option value="">All Sessions</option>
                 {% for s in all_sessions %}
                 <option value="{{ s.id }}" {% if session_filter == s.id|stringformat:"s" %}selected{% endif %}>
-                    {{ s.session_name }}{% if s.status == 'Active' %} ★{% endif %}
+                    {{ s.session_name }}{% if s.status == 'Active' %} (Active){% endif %}
                 </option>
                 {% endfor %}
             </select>
