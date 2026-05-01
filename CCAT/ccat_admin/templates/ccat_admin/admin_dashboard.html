@@ -142,6 +142,7 @@
                 />
             </div>
             <select name="session"
+                    onchange="this.form.submit()"
                     class="py-2 px-3 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all">
                 <option value="">All Sessions</option>
                 {% for s in all_sessions %}
