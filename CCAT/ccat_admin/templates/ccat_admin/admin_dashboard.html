@@ -225,7 +225,7 @@
                 <!-- Previous -->
                 <li>
                     {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}"
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if session_filter %}&session={{ session_filter }}{% endif %}"
                        class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-l-lg hover:bg-surface-container-low transition-colors">
                         Previous
                     </a>
@@ -244,7 +244,7 @@
                     </li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                     <li>
-                        <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}"
+                        <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if session_filter %}&session={{ session_filter }}{% endif %}"
                            class="flex items-center justify-center px-4 h-9 leading-tight text-outline bg-white border border-outline-variant/30 hover:bg-surface-container-low transition-colors">
                             {{ num }}
                         </a>
@@ -255,7 +255,7 @@
                 <!-- Next -->
                 <li>
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}"
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if session_filter %}&session={{ session_filter }}{% endif %}"
                        class="flex items-center justify-center px-3 h-9 leading-tight text-outline bg-white border border-outline-variant/30 rounded-r-lg hover:bg-surface-container-low transition-colors">
                         Next
                     </a>
