@@ -21,16 +21,6 @@
 <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-6">
 
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <div>
-            <h2 class="text-lg font-bold text-on-surface whitespace-nowrap font-headline">Master List</h2>
-            {% if search %}
-            <p class="text-xs text-outline mt-0.5">
-                Showing results for "<span class="font-semibold text-on-surface">{{ search }}</span>"
-                &nbsp;·&nbsp;<a href="{% url 'student_records' %}" class="text-primary underline underline-offset-2">Clear search</a>
-            </p>
-            {% endif %}
-        </div>
-
         <form method="GET" action="{% url 'student_records' %}" class="flex flex-wrap items-center gap-3">
             <div class="relative flex-1 min-w-[240px] max-w-sm">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
@@ -38,7 +28,7 @@
                     type="text"
                     name="search"
                     value="{{ search }}"
-                    placeholder="Search students..."
+                    placeholder="Search by name or LRN..."
                     class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm placeholder:text-outline/60 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
             </div>
@@ -46,7 +36,16 @@
                 class="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-container transition-colors">
                 Search
             </button>
+            {% if search %}
+            <a href="{% url 'student_records' %}"
+               class="inline-flex items-center text-sm font-medium text-outline hover:text-primary transition-colors underline underline-offset-4 decoration-outline-variant ml-2">
+                Clear
+            </a>
+            {% endif %}
         </form>
+
+        <div class="text-right">
+        </div>
     </div>
 
     <div class="overflow-x-auto">
