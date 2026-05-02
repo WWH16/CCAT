@@ -595,7 +595,7 @@ def user_create(request):
         elif User.objects.filter(username=username).exists():
             error = f'Username "{username}" is already taken.'
         else:
-            User.objects.create_user(
+            new_user = User.objects.create_user(
                 username=username,
                 password=password,
                 first_name=first_name,
@@ -628,6 +628,15 @@ def user_edit(request, user_id):
         else:
             user.username = new_username
             user.save()
+
+            # Sync to Student table if this user is a student
+            if hasattr(user, 'student_profile'):
+                student = user.student_profile
+                student.first_name = user.first_name
+                student.last_name = user.last_name
+                student.email = user.email
+                student.save()
+
             return redirect('user_list')
 
     return render(request, 'ccat_admin/user_form.html', {'mode': 'edit', 'target_user': user, 'error': error})
