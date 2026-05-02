@@ -23,7 +23,7 @@
     </a>
 </header>
 
-<form method="GET" class="mb-6 flex gap-2">
+<form method="GET" class="mb-6 flex flex-wrap gap-2 items-center">
     <div class="relative flex-grow max-w-sm">
         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-outline">
             <span class="material-symbols-outlined">search</span>
@@ -31,9 +31,31 @@
         <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search accounts..."
                class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
     </div>
-    {% if search %}
+
+    <div class="flex flex-wrap gap-2">
+        {% with "" as active_cls %}
+        <a href="?{% if search %}search={{ search }}&{% endif %}permission=" 
+           class="px-4 py-2 rounded-full text-xs font-bold border transition-colors {% if not permission %}bg-primary text-white border-primary{% else %}bg-surface-container-lowest text-outline border-outline-variant hover:border-primary{% endif %}">
+            All
+        </a>
+        <a href="?{% if search %}search={{ search }}&{% endif %}permission=active" 
+           class="px-4 py-2 rounded-full text-xs font-bold border transition-colors {% if permission == 'active' %}bg-primary text-white border-primary{% else %}bg-surface-container-lowest text-outline border-outline-variant hover:border-primary{% endif %}">
+            Active
+        </a>
+        <a href="?{% if search %}search={{ search }}&{% endif %}permission=staff" 
+           class="px-4 py-2 rounded-full text-xs font-bold border transition-colors {% if permission == 'staff' %}bg-primary text-white border-primary{% else %}bg-surface-container-lowest text-outline border-outline-variant hover:border-primary{% endif %}">
+            Staff
+        </a>
+        <a href="?{% if search %}search={{ search }}&{% endif %}permission=superuser" 
+           class="px-4 py-2 rounded-full text-xs font-bold border transition-colors {% if permission == 'superuser' %}bg-primary text-white border-primary{% else %}bg-surface-container-lowest text-outline border-outline-variant hover:border-primary{% endif %}">
+            Superuser
+        </a>
+        {% endwith %}
+    </div>
+
+    {% if search or permission %}
     <a href="{% url 'user_list' %}"
-       class="inline-flex items-center text-sm font-medium text-outline hover:text-primary transition-colors underline underline-offset-4 decoration-outline-variant">
+       class="inline-flex items-center text-sm font-medium text-outline hover:text-primary transition-colors underline underline-offset-4 decoration-outline-variant ml-2">
         Clear
     </a>
     {% endif %}
@@ -121,10 +143,10 @@
     <span class="text-xs text-outline font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
     <div class="flex gap-2">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}" class="px-4 py-2 text-sm font-bold text-on-surface bg-surface-container rounded-lg hover:bg-surface-container-high">Previous</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if permission %}&permission={{ permission }}{% endif %}" class="px-4 py-2 text-sm font-bold text-on-surface bg-surface-container rounded-lg hover:bg-surface-container-high">Previous</a>
         {% endif %}
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}" class="px-4 py-2 text-sm font-bold text-on-surface bg-surface-container rounded-lg hover:bg-surface-container-high">Next</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if permission %}&permission={{ permission }}{% endif %}" class="px-4 py-2 text-sm font-bold text-on-surface bg-surface-container rounded-lg hover:bg-surface-container-high">Next</a>
         {% endif %}
     </div>
 </div>

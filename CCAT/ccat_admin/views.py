@@ -574,6 +574,7 @@ def superuser_required(view_func):
 @superuser_required
 def user_list(request):
     search = request.GET.get('search', '').strip()
+    permission = request.GET.get('permission', '').strip()
     users_list = User.objects.all().order_by('username')
     
     if search:
@@ -584,13 +585,21 @@ def user_list(request):
             Q(email__icontains=search)
         )
     
+    if permission == 'active':
+        users_list = users_list.filter(is_active=True)
+    elif permission == 'staff':
+        users_list = users_list.filter(is_staff=True)
+    elif permission == 'superuser':
+        users_list = users_list.filter(is_superuser=True)
+    
     paginator = Paginator(users_list, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
     return render(request, 'ccat_admin/user_list.html', {
         'page_obj': page_obj, 
-        'search': search
+        'search': search,
+        'permission': permission
     })
 
 
