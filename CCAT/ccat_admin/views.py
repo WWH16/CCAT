@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
 from . import models
 from .models import Student, ExamResult, Question, Category, Option, ExamConfig, SessionKey
@@ -159,6 +161,8 @@ def _handle_abstract_question(request, category):
 
 @login_required(login_url='admin_login')
 def exam_settings(request):
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
     config = ExamConfig.get_config()
 
     if request.method == 'POST':
@@ -549,3 +553,104 @@ def student_edit(request, student_id):
         student.second_priority    = request.POST.get('second_priority')
         student.save()
     return redirect('student_records')
+
+def superuser_required(view_func):
+    """Decorator: only superusers can access this view."""
+    from functools import wraps
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_superuser:
+            return redirect('admin_dashboard')
+        return view_func(request, *args, **kwargs)
+    return login_required(_wrapped, login_url='admin_login')
+
+
+@superuser_required
+def user_list(request):
+    users = User.objects.all().order_by('username')
+    return render(request, 'ccat_admin/user_list.html', {'users': users})
+
+
+@superuser_required
+def user_create(request):
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        is_active = 'is_active' in request.POST
+        is_staff = 'is_staff' in request.POST
+        is_superuser = 'is_superuser' in request.POST
+
+        if not username or not password:
+            error = 'Username and password are required.'
+        elif User.objects.filter(username=username).exists():
+            error = f'Username "{username}" is already taken.'
+        else:
+            User.objects.create_user(
+                username=username,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                is_active=is_active,
+                is_staff=is_staff,
+                is_superuser=is_superuser,
+            )
+            return redirect('user_list')
+
+    return render(request, 'ccat_admin/user_form.html', {'mode': 'create', 'error': error})
+
+
+@superuser_required
+def user_edit(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    error = None
+    if request.method == 'POST':
+        user.first_name = request.POST.get('first_name', '').strip()
+        user.last_name = request.POST.get('last_name', '').strip()
+        user.email = request.POST.get('email', '').strip()
+        user.is_active = 'is_active' in request.POST
+        user.is_staff = 'is_staff' in request.POST
+        user.is_superuser = 'is_superuser' in request.POST
+
+        new_username = request.POST.get('username', '').strip()
+        if new_username != user.username and User.objects.filter(username=new_username).exists():
+            error = f'Username "{new_username}" is already taken.'
+        else:
+            user.username = new_username
+            user.save()
+            return redirect('user_list')
+
+    return render(request, 'ccat_admin/user_form.html', {'mode': 'edit', 'target_user': user, 'error': error})
+
+
+@superuser_required
+def user_change_password(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    error = None
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password', '')
+        confirm = request.POST.get('confirm_password', '')
+        if not new_password:
+            error = 'Password cannot be empty.'
+        elif new_password != confirm:
+            error = 'Passwords do not match.'
+        else:
+            user.set_password(new_password)
+            user.save()
+            return redirect('user_edit', user_id=user_id)
+    return render(request, 'ccat_admin/user_change_password.html', {'target_user': user, 'error': error})
+
+
+@superuser_required
+def user_delete(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        if user == request.user:
+            pass  # Don't let superuser delete themselves
+        else:
+            user.delete()
+    return redirect('user_list')

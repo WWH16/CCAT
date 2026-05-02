@@ -123,6 +123,7 @@
             <span class="font-medium text-sm">Question Management</span>
         </a>
 
+        {% if request.user.is_superuser %}
         <a href="{% url 'exam_settings' %}"
            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all
            {% if request.resolver_match.url_name == 'exam_settings' %}
@@ -133,6 +134,7 @@
             <span class="material-symbols-outlined">settings_applications</span>
             <span class="font-medium text-sm">Exam Settings</span>
         </a>
+        {% endif %}
 
         <a href="{% url 'access_keys' %}"
            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all
@@ -144,6 +146,19 @@
             <span class="material-symbols-outlined" style="{% if request.resolver_match.url_name == 'access_keys' %}font-variation-settings: 'FILL' 1;{% endif %}">key</span>
             <span class="font-medium text-sm">Access Keys</span>
         </a>
+
+                {% if request.user.is_superuser %}
+        <a href="{% url 'user_list' %}"
+           class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all
+           {% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' %}
+           bg-white dark:bg-slate-800 text-primary dark:text-emerald-400 shadow-sm
+           {% else %}
+           text-slate-600 dark:text-slate-400 hover:bg-surface-container-low dark:hover:bg-slate-800/50
+           {% endif %}">
+            <span class="material-symbols-outlined">manage_accounts</span>
+            <span class="font-medium text-sm">User Management</span>
+        </a>
+        {% endif %}
     </nav>
 
     <div class="px-2 pt-4 border-t border-outline-variant/20">

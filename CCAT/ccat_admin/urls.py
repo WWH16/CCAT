@@ -28,5 +28,14 @@ urlpatterns = [
     # Student Records
     path('student-records/', views.student_records, name='student_records'),
 
+    # Student management
     path('students/<int:student_id>/edit/', views.student_edit, name='student_edit'),
+
+    # User management
+    path('users/', views.user_list, name='user_list'),
+    path('users/create/', views.user_create, name='user_create'),
+    path('users/<int:user_id>/edit/', views.user_edit, name='user_edit'),
+    path('users/<int:user_id>/delete/', views.user_delete, name='user_delete'),
+    path('users/<int:user_id>/password/', views.user_change_password, name='user_change_password'),
+
 ]
