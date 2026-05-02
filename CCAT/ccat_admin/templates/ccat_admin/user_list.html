@@ -23,6 +23,22 @@
     </a>
 </header>
 
+<form method="GET" class="mb-6 flex gap-2">
+    <div class="relative flex-grow max-w-sm">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-outline">
+            <span class="material-symbols-outlined">search</span>
+        </span>
+        <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search accounts..."
+               class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+    </div>
+    {% if search %}
+    <a href="{% url 'user_list' %}"
+       class="inline-flex items-center text-sm font-medium text-outline hover:text-primary transition-colors underline underline-offset-4 decoration-outline-variant">
+        Clear
+    </a>
+    {% endif %}
+</form>
+
 <div class="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/10 shadow-sm">
     <table class="w-full text-left border-collapse">
         <thead>
@@ -39,7 +55,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-surface-container">
-            {% for u in users %}
+            {% for u in page_obj %}
             <tr class="hover:bg-surface-container-low transition-colors group">
                 <td class="px-6 py-4 font-bold text-on-surface text-sm">{{ u.username }}</td>
                 <td class="px-6 py-4 text-sm text-on-surface-variant">{{ u.first_name|default:"—" }}</td>
@@ -99,6 +115,20 @@
         </tbody>
     </table>
 </div>
+
+{% if page_obj.has_other_pages %}
+<div class="mt-6 flex items-center justify-between">
+    <span class="text-xs text-outline font-medium">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}" class="px-4 py-2 text-sm font-bold text-on-surface bg-surface-container rounded-lg hover:bg-surface-container-high">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}" class="px-4 py-2 text-sm font-bold text-on-surface bg-surface-container rounded-lg hover:bg-surface-container-high">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
 <div id="deleteUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">

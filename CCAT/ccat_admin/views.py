@@ -573,8 +573,25 @@ def superuser_required(view_func):
 
 @superuser_required
 def user_list(request):
-    users = User.objects.all().order_by('username')
-    return render(request, 'ccat_admin/user_list.html', {'users': users})
+    search = request.GET.get('search', '').strip()
+    users_list = User.objects.all().order_by('username')
+    
+    if search:
+        users_list = users_list.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+    
+    paginator = Paginator(users_list, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'ccat_admin/user_list.html', {
+        'page_obj': page_obj, 
+        'search': search
+    })
 
 
 @superuser_required
