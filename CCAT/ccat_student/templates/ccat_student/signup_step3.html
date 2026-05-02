@@ -92,9 +92,14 @@
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Track / Strand</label>
                     <div class="relative group">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg group-focus-within:text-primary transition-colors">schema</span>
-                        <input name="track_strand" required value="{{ form_data.track_strand|default:'' }}"
-                               class="w-full bg-slate-50/50 border border-slate-200 focus:border-primary focus:ring-0 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-900 transition-all placeholder:text-slate-300"
-                               placeholder="Ex. Academic/ABM" type="text"/>
+                        <select name="track_strand" required
+                                class="w-full bg-slate-50/50 border border-slate-200 focus:border-primary focus:ring-0 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-900 transition-all appearance-none cursor-pointer">
+                            <option value="" disabled {% if not form_data.track_strand %}selected{% endif %}>Select your Track/Strand</option>
+                            {% for value, label in strand_choices %}
+                                <option value="{{ value }}" {% if form_data.track_strand == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined pointer-events-none">expand_more</span>
                     </div>
                 </div>
 

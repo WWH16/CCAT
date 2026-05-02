@@ -49,6 +49,7 @@ def signup_step3(request):
         # Early check for duplicate LRN
         if User.objects.filter(username=lrn).exists():
             return render(request, 'ccat_student/signup_step3.html', {
+                'strand_choices': Student.STRAND_CHOICES,
                 'error': 'This LRN is already registered. Please proceed to the login page.',
                 'form_data': {
                     'lrn_number': lrn,
@@ -67,7 +68,10 @@ def signup_step3(request):
         })
         request.session['signup_data'] = data
         return redirect('signup_step4')
-    return render(request, 'ccat_student/signup_step3.html', {'form_data': request.session.get('signup_data', {})})
+    return render(request, 'ccat_student/signup_step3.html', {
+        'strand_choices': Student.STRAND_CHOICES,
+        'form_data': request.session.get('signup_data', {})
+    })
 
 
 def signup_step4(request):

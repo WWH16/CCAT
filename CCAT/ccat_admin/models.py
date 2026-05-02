@@ -47,6 +47,13 @@ class Option(models.Model):
 class Student(models.Model):
     SEX_CHOICES = [('M', 'Male'), ('F', 'Female')]
 
+    STRAND_CHOICES = [
+        ('STEM', 'STEM (Science, Technology, Engineering, Mathematics)'),
+        ('ABM', 'ABM (Accountancy, Business, Management)'),
+        ('HUMSS', 'HUMSS (Humanities and Social Sciences)'),
+        ('GAS', 'GAS (General Academic Strand)'),
+    ]
+
     PROGRAM_CHOICES = [
         ('bsit', 'Bachelor of Science in Information Technology (BSIT)'),
         ('bsa', 'Bachelor of Science in Agriculture (BSA)'),
@@ -78,7 +85,7 @@ class Student(models.Model):
     last_school_attended = models.CharField(max_length=255)
     school_address = models.CharField(max_length=255)
     lrn_number = models.CharField(max_length=12)
-    track_strand = models.CharField(max_length=150)
+    track_strand = models.CharField(max_length=150, choices=STRAND_CHOICES)
 
     # --- Step 4: Course Preferences ---
     first_priority = models.CharField(max_length=10, choices=PROGRAM_CHOICES)
