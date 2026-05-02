@@ -141,7 +141,7 @@ class ExamConfig(models.Model):
 class SessionKey(models.Model):
     session_name = models.CharField(max_length=100)
     # The unique code (e.g., ISU-A1B2)
-    key_code = models.CharField(max_length=12, unique=True)
+    key_code = models.CharField(max_length=16, unique=True)
 
     # Expiration
     expiry_date = models.DateTimeField()

@@ -289,8 +289,8 @@ def delete_question(request, question_id):
 def generate_random_key():
     chars = string.ascii_uppercase + string.digits
     while True:
-        # Format: ISU-XXXX
-        code = f"ISU-{''.join(random.choices(chars, k=4))}"
+        # Format: ISU-PAL-XXXX
+        code = f"ISU-PAL-{''.join(random.choices(chars, k=4))}"
         if not SessionKey.objects.filter(key_code=code).exists():
             return code
 
