@@ -75,12 +75,9 @@
                             <span class="material-symbols-outlined text-lg">edit</span>
                         </a>
                         {% if u != request.user %}
-                        <form method="POST" action="{% url 'user_delete' u.id %}" onsubmit="return confirm('Delete user {{ u.username }}?')">
-                            {% csrf_token %}
-                            <button type="button" onclick="openDeleteModal('{{ u.username }}', '{% url 'user_delete' u.id %}')" class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors">
-                                <span class="material-symbols-outlined text-lg">delete</span>
-                            </button>
-                        </form>
+                        <button type="button" onclick="openDeleteModal('{{ u.username }}', '{% url 'user_delete' u.id %}')" class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors">
+                            <span class="material-symbols-outlined text-lg">delete</span>
+                        </button>
                         {% endif %}
                     </div>
                 </td>
