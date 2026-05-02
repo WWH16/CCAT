@@ -4,6 +4,18 @@
 {% block title %}{% if mode == 'create' %}Add User{% else %}Edit User{% endif %} | ISU Palanan Admission{% endblock %}
 
 {% block content %}
+<nav class="flex items-center gap-2 text-xs font-medium text-outline mb-4">
+    <a href="{% url 'user_list' %}" class="hover:text-primary transition-colors flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
+        User Management
+    </a>
+    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+    <span class="text-primary font-bold flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">{% if mode == 'create' %}person_add{% else %}edit{% endif %}</span>
+        {% if mode == 'create' %}Add User{% else %}Edit User{% endif %}
+    </span>
+</nav>
+
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <!-- Left Column: Header and Form -->
     <div class="lg:col-span-8 space-y-8">
