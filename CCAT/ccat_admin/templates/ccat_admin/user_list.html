@@ -28,7 +28,8 @@
         <thead>
             <tr class="border-b border-surface-container">
                 <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest">Username</th>
-                <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest">Full Name</th>
+                <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest">First Name</th>
+                <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest">Last Name</th>
                 <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest">Email</th>
                 <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest text-center">Active</th>
                 <th class="px-6 py-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest text-center">Staff</th>
@@ -41,7 +42,8 @@
             {% for u in users %}
             <tr class="hover:bg-surface-container-low transition-colors group">
                 <td class="px-6 py-4 font-bold text-on-surface text-sm">{{ u.username }}</td>
-                <td class="px-6 py-4 text-sm text-on-surface-variant">{{ u.get_full_name|default:"—" }}</td>
+                <td class="px-6 py-4 text-sm text-on-surface-variant">{{ u.first_name|default:"—" }}</td>
+                <td class="px-6 py-4 text-sm text-on-surface-variant">{{ u.last_name|default:"—" }}</td>
                 <td class="px-6 py-4 text-sm text-on-surface-variant">{{ u.email|default:"—" }}</td>
                 <td class="px-6 py-4 text-center">
                     {% if u.is_active %}
@@ -91,7 +93,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="px-6 py-12 text-center text-outline italic text-sm">No users found.</td>
+                <td colspan="9" class="px-6 py-12 text-center text-outline italic text-sm">No users found.</td>
             </tr>
             {% endfor %}
         </tbody>
