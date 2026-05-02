@@ -77,7 +77,7 @@
                         {% if u != request.user %}
                         <form method="POST" action="{% url 'user_delete' u.id %}" onsubmit="return confirm('Delete user {{ u.username }}?')">
                             {% csrf_token %}
-                            <button type="submit" class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors">
+                            <button type="button" onclick="openDeleteModal('{{ u.username }}', '{% url 'user_delete' u.id %}')" class="p-2 hover:bg-error/10 text-error rounded-lg transition-colors">
                                 <span class="material-symbols-outlined text-lg">delete</span>
                             </button>
                         </form>
@@ -93,4 +93,30 @@
         </tbody>
     </table>
 </div>
+
+<div id="deleteUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-error">warning</span>
+            </div>
+            <h3 class="text-lg font-bold">Delete User</h3>
+        </div>
+        <p class="text-sm text-on-surface-variant mb-6">Are you sure you want to delete <strong id="deleteUsername"></strong>? This cannot be undone.</p>
+        <form id="deleteUserForm" method="POST">
+            {% csrf_token %}
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="document.getElementById('deleteUserModal').classList.add('hidden')" class="px-4 py-2 text-sm font-bold text-outline border border-outline-variant/30 rounded-lg">Cancel</button>
+                <button type="submit" class="px-4 py-2 text-sm font-bold text-white bg-error rounded-lg">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function openDeleteModal(username, url) {
+    document.getElementById('deleteUsername').textContent = username;
+    document.getElementById('deleteUserForm').action = url;
+    document.getElementById('deleteUserModal').classList.remove('hidden');
+}
+</script>
 {% endblock %}

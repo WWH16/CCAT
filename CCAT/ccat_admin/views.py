@@ -552,6 +552,12 @@ def student_edit(request, student_id):
         student.first_priority     = request.POST.get('first_priority')
         student.second_priority    = request.POST.get('second_priority')
         student.save()
+        # Sync to User table
+        user = student.user
+        user.first_name = student.first_name
+        user.last_name = student.last_name
+        user.email = student.email
+        user.save()
     return redirect('student_records')
 
 def superuser_required(view_func):

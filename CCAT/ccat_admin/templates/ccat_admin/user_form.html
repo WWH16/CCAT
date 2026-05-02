@@ -145,17 +145,33 @@
            class="px-6 py-2.5 rounded-lg border-2 border-outline-variant text-outline font-semibold hover:bg-surface-container-high transition-colors text-sm">
             Cancel
         </a>
-        {% if mode == 'edit' and target_user != request.user %}
-        <form method="POST" action="{% url 'user_delete' target_user.id %}" class="ml-auto"
-              onsubmit="return confirm('Delete user {{ target_user.username }}? This cannot be undone.')">
-            {% csrf_token %}
-            <button type="submit"
-                    class="px-6 py-2.5 rounded-lg border-2 border-error/30 bg-error/5 text-error font-semibold hover:bg-error/10 transition-colors text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-lg">delete</span>
-                Delete User
-            </button>
-        </form>
-        {% endif %}
+{% if mode == 'edit' and target_user != request.user %}
+    <button type="button" onclick="document.getElementById('deleteUserModal').classList.remove('hidden')"
+            class="ml-auto px-6 py-2.5 rounded-lg border-2 border-error/30 bg-error/5 text-error font-semibold hover:bg-error/10 transition-colors text-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg">delete</span>
+        Delete User
+    </button>
+    {% endif %}
+        </div>
+
+        <div id="deleteUserModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-error">warning</span>
+                    </div>
+                    <h3 class="text-lg font-bold">Delete User</h3>
+                </div>
+                <p class="text-sm text-on-surface-variant mb-6">Delete <strong>{{ target_user.username }}</strong>? This cannot be undone.</p>
+                <form method="POST" action="{% url 'user_delete' target_user.id %}">
+                    {% csrf_token %}
+                    <div class="flex gap-3 justify-end">
+                        <button type="button" onclick="document.getElementById('deleteUserModal').classList.add('hidden')" class="px-4 py-2 text-sm font-bold text-outline border border-outline-variant/30 rounded-lg">Cancel</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-bold text-white bg-error rounded-lg">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </form>
 </div>
