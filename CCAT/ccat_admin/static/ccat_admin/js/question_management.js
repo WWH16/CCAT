@@ -275,9 +275,15 @@
         });
     }
 
-    function deleteCategory(id, name) {
-        if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+    function openDeleteCategoryModal(id, name) {
+        document.getElementById('deleteCategoryIdInput').value = id;
+        document.getElementById('deleteCategoryNamePreview').innerText = name;
+        toggleModal('deleteCategoryModal', true);
+    }
 
+    function confirmDeleteCategory() {
+        const id = document.getElementById('deleteCategoryIdInput').value;
+        
         fetch(`/categories/${id}/delete/`, {
             method: 'POST',
             headers: {
@@ -291,6 +297,7 @@
                 location.reload();
             } else {
                 alert(data.error);
+                toggleModal('deleteCategoryModal', false);
             }
         });
     }

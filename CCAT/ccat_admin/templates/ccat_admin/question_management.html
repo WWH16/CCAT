@@ -441,15 +441,37 @@
             <span class="material-symbols-outlined text-sm">error</span>
             <span id="categoryErrorText"></span>
         </p>
-        <div class="space-y-1 max-h-64 overflow-y-auto no-scrollbar">
+        <div class="space-y-1 max-h-64 overflow-y-auto pr-2">
             {% for cat in categories %}
             <div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-surface-container">
                 <span class="text-sm font-medium">{{ cat.name }}</span>
-                <button onclick="deleteCategory({{ cat.id }}, '{{ cat.name|escapejs }}')" class="p-1 hover:bg-error/10 text-error rounded transition-colors">
+                <button onclick="openDeleteCategoryModal({{ cat.id }}, '{{ cat.name|escapejs }}')" class="p-1 hover:bg-error/10 text-error rounded transition-colors">
                     <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
             </div>
             {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ─── DELETE CATEGORY CONFIRMATION MODAL ─── -->
+<div id="deleteCategoryModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="toggleModal('deleteCategoryModal', false)"></div>
+    <div class="relative bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl p-8">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-error text-xl">warning</span>
+            </div>
+            <h3 class="text-lg font-bold text-on-surface">Delete Category</h3>
+        </div>
+        <p class="text-on-surface-variant text-sm mb-6">Are you sure you want to delete this category? All questions under this category will also be affected.</p>
+        <div class="bg-surface-container rounded-lg p-3 mb-6">
+            <p id="deleteCategoryNamePreview" class="text-sm font-medium text-on-surface truncate"></p>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <input type="hidden" id="deleteCategoryIdInput">
+            <button type="button" onclick="toggleModal('deleteCategoryModal', false)" class="px-6 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-md">Cancel</button>
+            <button type="button" onclick="confirmDeleteCategory()" class="px-6 py-2.5 text-sm font-semibold bg-error text-white rounded-md shadow-lg hover:opacity-90 transition-all">Delete Category</button>
         </div>
     </div>
 </div>
