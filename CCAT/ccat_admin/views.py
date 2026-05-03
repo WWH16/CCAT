@@ -117,6 +117,7 @@ def _handle_standard_question(request, category):
 
 
 def _handle_abstract_question(request, category):
+    q_text = request.POST.get('text', f"Abstract Question")
     q_type = 'MCQ'
 
     correct = request.POST.get('abstract_correct_option')
@@ -137,7 +138,7 @@ def _handle_abstract_question(request, category):
     custom_id = f"{prefix}-{candidate_num:03d}"
 
     new_q = Question.objects.create(
-        question_text=f"Abstract Question {custom_id}",
+        question_text=q_text,
         category=category,
         question_type=q_type,
         custom_id=custom_id,
@@ -240,6 +241,7 @@ def edit_question(request, question_id):
             if request.FILES.get('question_image'):
                 question.question_image = request.FILES.get('question_image')
             
+            question.question_text = request.POST.get('text')
             question.category = category
             question.question_type = 'MCQ' # Abstract is always MCQ layout
             question.save()

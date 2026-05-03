@@ -46,15 +46,12 @@
 
             // Hide Standard fields
             qTypeWrapper.classList.add('hidden');
-            standardTextWrapper.classList.add('hidden');
+            standardTextWrapper.classList.remove('hidden'); // Keep text wrapper visible
             mcqLayout.classList.add('hidden');
             tfLayout.classList.add('hidden');
 
-            // Clear and disable text field
-            questionTextarea.value = '';
-            questionTextarea.disabled = true;
-
-
+            // DO NOT disable text field anymore
+            questionTextarea.disabled = false;
 
             rebuildAbstractOptions();
         } else {
@@ -103,6 +100,10 @@
 
         errorEl.classList.add('hidden');
 
+        // Question Text is now required for both
+        const qText = document.getElementById('questionTextarea').value.trim();
+        if (!qText) { showErr("Please enter a question text."); return false; }
+
         if (type === 'abstract') {
             const qImg = document.getElementById('abstractQuestionImage').files.length > 0;
             const correct = document.getElementById('abstractCorrectSelect').value;
@@ -117,9 +118,6 @@
                 }
             }
         } else {
-            const qText = document.getElementById('questionTextarea').value.trim();
-            if (!qText) { showErr("Please enter a question text."); return false; }
-
             const qType = document.getElementById('qTypeSelect').value;
             if (qType === 'MCQ') {
                 const correct = form.querySelector('input[name="correct_option"]:checked');
@@ -378,10 +376,10 @@
             abstractImageWrapper.classList.remove('hidden');
             abstractOptionsLayout.classList.remove('hidden');
             qTypeWrapper.classList.add('hidden');
-            standardTextWrapper.classList.add('hidden');
+            standardTextWrapper.classList.remove('hidden'); // Keep text wrapper visible
             mcqLayout.classList.add('hidden');
             tfLayout.classList.add('hidden');
-            questionTextarea.disabled = true;
+            questionTextarea.disabled = false; // Keep enabled
         } else {
             qTypeWrapper.classList.remove('hidden');
             standardTextWrapper.classList.remove('hidden');
@@ -481,13 +479,14 @@
 
         errorEl.classList.add('hidden');
 
+        // Question Text is now required for both
+        const qText = form.querySelector('[name="text"]').value.trim();
+        if (!qText) { showErr("Please enter a question text."); return false; }
+
         if (isAbstract) {
             const correct = form.querySelector('[name="abstract_correct_option"]').value;
             if (!correct) { showErr("Please select the correct answer."); return false; }
         } else {
-            const qText = form.querySelector('[name="text"]').value.trim();
-            if (!qText) { showErr("Please enter a question text."); return false; }
-
             const type = form.querySelector('[name="question_type"]').value;
             if (type === 'MCQ') {
                 const correct = form.querySelector('input[name="correct_option"]:checked');
