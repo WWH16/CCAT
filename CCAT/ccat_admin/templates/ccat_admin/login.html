@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>WCAT Authentication | ISU Palanan Extension Unit</title>
     <script src="{% static 'js/tailwind.min.js' %}"></script>
-    <link rel="icon" type="image/jpeg" href="{% static 'images/isu_logo.png' %}">
+    <!--<link rel="icon" type="image/jpeg" href="{% static 'images/isu_logo.png' %}">-->
     <link href="{% static 'css/font.css' %}" rel="stylesheet" />
     <link href="{% static 'css/material-symbols.css' %}" rel="stylesheet" />
     <script id="tailwind-config">
@@ -106,7 +106,7 @@ body::before {
   left: 0;
   width: 100%;
   height: calc(100% - 73px);  /* reduce height accordingly */
-  background-image: url("{% static 'images/isu_logo.png' %}");
+  /*background-image: url("{% static 'images/isu_logo.png' %}");*/
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 700px auto;
@@ -129,11 +129,8 @@ body::before {
     <nav class="w-full top-0 sticky z-50 bg-white border-b border-emerald-900/5 shadow-sm">
       <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
         <div class="flex items-center gap-4">
-          <img
-            src="{% static 'images/isu_logo.png' %}"
-            alt="ISU Logo"
-            class="h-10 w-10 object-contain"
-          />
+            <!--<img alt="University Logo" class="w-10 h-10 object-contain" src="{% static 'images/isu_logo.png' %}"/>-->
+        <span class="material-symbols-outlined text-primary" style="font-size: 40px;">school</span>
           <div class="flex flex-col">
             <span class="text-lg font-bold tracking-tight text-primary leading-tight">
               Isabela State University
@@ -221,7 +218,8 @@ body::before {
 <footer class="py-12 px-8 bg-white border-t border-emerald-900/5 relative z-10">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
         <div class="flex items-center gap-4 opacity-70 grayscale">
-            <img alt="University Logo" class="w-12 h-12 object-contain" src="{% static 'images/isu_logo.png' %}"/>
+            <!--<img alt="University Logo" class="w-12 h-12 object-contain" src="{% static 'images/isu_logo.png' %}"/>-->
+            <span class="material-symbols-outlined text-primary text-5xl">school</span>
             <div>
                 <p class="text-xs font-black tracking-widest text-primary uppercase">Isabela State University</p>
                 <p class="text-[10px] font-bold text-on-surface-variant">Palanan Extension Unit</p>
