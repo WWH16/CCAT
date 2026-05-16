@@ -12,7 +12,7 @@
             Welcome back. Here is an overview of student registrations and test results for the Palanan Unit.
         </p>
     </div>
-    <a href="{% url 'admin_export_csv' %}"
+    <a href="{% url 'admin_export_csv' %}{% if session_filter %}?session={{ session_filter }}{% endif %}"
        class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95">
         <span class="material-symbols-outlined text-base">download</span>
         Export Student Data
@@ -177,7 +177,8 @@
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Session</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Math</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Science</th>
-                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">English</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Filipino</th>
+                    <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">History</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">AR</th>
                     <th class="pb-3 text-[0.65rem] font-bold text-outline uppercase tracking-widest px-2">Date Taken</th>
                 </tr>
@@ -202,8 +203,15 @@
                     </td>
                     <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.Math.correct|default:"0" }}</span>/{{ result.breakdown.Math.total|default:"0" }}</td>
                     <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.Science.correct|default:"0" }}</span>/{{ result.breakdown.Science.total|default:"0" }}</td>
-                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.English.correct|default:"0" }}</span>/{{ result.breakdown.English.total|default:"0" }}</td>
-                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.AR.correct|default:"0" }}</span>/{{ result.breakdown.AR.total|default:"0" }}</td>
+                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.Filipino.correct|default:"0" }}</span>/{{ result.breakdown.Filipino.total|default:"0" }}</td>
+                    <td class="py-4 px-2 text-sm text-outline"><span class="font-bold text-on-surface">{{ result.breakdown.History.correct|default:"0" }}</span>/{{ result.breakdown.History.total|default:"0" }}</td>
+                    <td class="py-4 px-2 text-sm text-outline">
+                        {% for key, value in result.breakdown.items %}
+                            {% if key == "Abstract Reasoning" %}
+                                <span class="font-bold text-on-surface">{{ value.correct|default:"0" }}</span>/{{ value.total|default:"0" }}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
                     <td class="py-4 px-2 text-sm text-outline">{{ result.date_taken|date:"M d, Y" }}</td>
                 </tr>
                 {% empty %}

@@ -416,6 +416,25 @@ def admin_export_csv(request):
 
     writer = csv.writer(response)
 
+    # Get only categories that have questions
+    active_categories = list(
+        Category.objects.filter(question__isnull=False)
+        .distinct()
+        .order_by('name')
+        .values_list('name', flat=True)
+    )
+
+    session_filter = request.GET.get('session', '').strip()
+
+    results = (
+        ExamResult.objects
+        .select_related('student', 'session_key')
+        .order_by('student__last_name', 'student__first_name')
+    )
+
+    if session_filter:
+        results = results.filter(session_key__id=session_filter)
+
     # Header row
     writer.writerow([
         'Last Name',
@@ -432,21 +451,12 @@ def admin_export_csv(request):
         'Last School Attended',
         'First Preference',
         'Second Preference',
-        'Total Correct',
+        'Total Score',
         'Total Questions',
-        'Math Score',
-        'Science Score',
-        'English Score',
-        'AR Score',
+        *[f'{cat} Score' for cat in active_categories],
         'Session',
         'Date Taken',
     ])
-
-    results = (
-        ExamResult.objects
-        .select_related('student', 'session_key')
-        .order_by('student__last_name', 'student__first_name')
-    )
 
     for result in results:
         s = result.student
@@ -457,7 +467,7 @@ def admin_export_csv(request):
             s.middle_initial or '',
             f'\t{s.lrn_number}',
             s.get_sex_display(),
-            s.date_of_birth.strftime('%Y-%m-%d') if s.date_of_birth else '',
+            f'\t{s.date_of_birth.strftime("%Y-%m-%d") if s.date_of_birth else ""}',
             f'\t{s.mobile_number}',
             s.email,
             s.province,
@@ -468,12 +478,9 @@ def admin_export_csv(request):
             s.get_second_priority_display(),
             result.total_correct,
             result.total_questions,
-            f"{b.get('Math', {}).get('correct', 0)}/{b.get('Math', {}).get('total', 0)}",
-            f"{b.get('Science', {}).get('correct', 0)}/{b.get('Science', {}).get('total', 0)}",
-            f"{b.get('English', {}).get('correct', 0)}/{b.get('English', {}).get('total', 0)}",
-            f"{b.get('AR', {}).get('correct', 0)}/{b.get('AR', {}).get('total', 0)}",
+            *[f'\t{b.get(cat, {}).get("correct", 0)}/{b.get(cat, {}).get("total", 0)}' for cat in active_categories],
             result.session_key.session_name if result.session_key else 'N/A',
-            result.date_taken.strftime('%Y-%m-%d %H:%M:%S'),
+            f'\t{result.date_taken.strftime("%Y-%m-%d %H:%M:%S")}',
         ])
 
     return response
